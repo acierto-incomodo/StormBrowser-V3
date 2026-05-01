@@ -51,6 +51,22 @@ document.getElementById('btn-close').addEventListener('click', () => {
 });
 
 // ─── Auto-updater ─────────────────────────────────────────────────────────────
+ipcRenderer.on('update-available', () => {
+  if (updateBanner) {
+    updateBanner.textContent = '⬇ Downloading update...';
+    updateBanner.classList.remove('hidden');
+  }
+});
+
+ipcRenderer.on('update-downloaded', () => {
+  if (updateBanner) {
+    updateBanner.innerHTML = '✓ Update ready — <button id="install-update-btn">Restart & Install</button>';
+    updateBanner.classList.remove('hidden');
+    document.getElementById('install-update-btn')?.addEventListener('click', () => {
+      ipcRenderer.send('install-update');
+    });
+  }
+});
 
 // ─── Tab Management ───────────────────────────────────────────────────────────
 function createTab(url = HOME_URL) {

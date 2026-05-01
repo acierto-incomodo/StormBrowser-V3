@@ -63,10 +63,7 @@ ipcMain.handle('window-is-maximized', () => mainWindow?.isMaximized() ?? false);
 // ─── Updater IPC ──────────────────────────────────────────────────────────────
 if (autoUpdater) {
   autoUpdater.on('update-available', () => {
-    mainWindow?.loadFile(path.join(__dirname, 'renderer/update.html'));
-  });
-  autoUpdater.on('download-progress', (progressObj) => {
-    mainWindow?.webContents.send('download-progress', progressObj.percent);
+    mainWindow?.webContents.send('update-available');
   });
   autoUpdater.on('update-downloaded', () => {
     mainWindow?.webContents.send('update-downloaded');
