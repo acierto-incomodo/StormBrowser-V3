@@ -1,10 +1,10 @@
-const { app, BrowserWindow, ipcMain, session } = require('electron');
-const path = require('path');
+const { app, BrowserWindow, ipcMain, session } = require("electron");
+const path = require("path");
 
 // electron-updater — only active in packaged builds
 let autoUpdater;
 try {
-  autoUpdater = require('electron-updater').autoUpdater;
+  autoUpdater = require("electron-updater").autoUpdater;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
 } catch (_) {
@@ -20,22 +20,22 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     frame: false,
-    backgroundColor: '#0f0f13',
+    backgroundColor: "#0f0f13",
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
       // nodeIntegration must be true so the renderer can use ipcRenderer directly
       nodeIntegration: true,
       contextIsolation: false,
       webviewTag: true,
-      sandbox: false
+      sandbox: false,
     },
-    icon: path.join(__dirname, 'renderer/assets/icon.png'),
-    show: false
+    icon: path.join(__dirname, "renderer/assets/icon.png"),
+    show: false,
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
+  mainWindow.loadFile(path.join(__dirname, "renderer/index.html"));
 
-  mainWindow.once('ready-to-show', () => {
+  mainWindow.once("ready-to-show", () => {
     mainWindow.show();
     // Check for updates once the window is visible (only in packaged app)
     if (app.isPackaged && autoUpdater) {
@@ -43,34 +43,48 @@ function createWindow() {
     }
   });
 
-  mainWindow.on('closed', () => {
+  mainWindow.on("closed", () => {
     mainWindow = null;
   });
 }
 
 // ─── Window controls ──────────────────────────────────────────────────────────
-ipcMain.on('window-minimize', () => mainWindow?.minimize());
-ipcMain.on('window-maximize', () => {
+ipcMain.on("window-minimize", () => mainWindow?.minimize());
+ipcMain.on("window-maximize", () => {
   if (mainWindow?.isMaximized()) {
     mainWindow.unmaximize();
   } else {
     mainWindow?.maximize();
   }
 });
-ipcMain.on('window-close', () => mainWindow?.close());
-ipcMain.handle('window-is-maximized', () => mainWindow?.isMaximized() ?? false);
+ipcMain.on("window-close", () => mainWindow?.close());
+ipcMain.handle("window-is-maximized", () => mainWindow?.isMaximized() ?? false);
 
 // ─── Updater IPC ──────────────────────────────────────────────────────────────
 if (autoUpdater) {
-  autoUpdater.on('update-available', () => {
-    mainWindow?.webContents.send('update-available');
+  autoUpdater.on("update-available", () => {
+    mainWindow?.loadFile(path.join(__dirname, "renderer/update.html"));
+    if (mainWindow) {
+      if (mainWindow.isMaximized()) mainWindow.unmaximize();
+      
+      mainWindow.setResizable(true); // Permitir cambio temporal
+      mainWindow.setMinimumSize(500, 600);
+      mainWindow.setSize(500, 600);
+      mainWindow.setResizable(false);
+      mainWindow.setMaximizable(false);
+      mainWindow.center();
+      mainWindow.loadFile(path.join(__dirname, "renderer/update.html"));
+    }
   });
-  autoUpdater.on('update-downloaded', () => {
-    mainWindow?.webContents.send('update-downloaded');
+  autoUpdater.on("download-progress", (progressObj) => {
+    mainWindow?.webContents.send("download-progress", progressObj);
+  });
+  autoUpdater.on("update-downloaded", () => {
+    mainWindow?.webContents.send("update-downloaded");
   });
 }
 
-ipcMain.on('install-update', () => {
+ipcMain.on("install-update", () => {
   autoUpdater?.quitAndInstall();
 });
 
@@ -79,21 +93,27 @@ app.whenReady().then(() => {
   // Strip CSP headers so webviews can load any page freely
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const headers = { ...details.responseHeaders };
-    delete headers['content-security-policy'];
-    delete headers['Content-Security-Policy'];
+    delete headers["content-security-policy"];
+    delete headers["Content-Security-Policy"];
     callback({ responseHeaders: headers });
   });
 
   // Gestión de progreso de descargas en la barra de tareas
-  session.defaultSession.on('will-download', (event, item) => {
-    item.on('updated', (event, state) => {
-      if (state === 'progressing') {
-        if (mainWindow && !mainWindow.isDestroyed() && item.getTotalBytes() > 0) {
-          mainWindow.setProgressBar(item.getReceivedBytes() / item.getTotalBytes());
+  session.defaultSession.on("will-download", (event, item) => {
+    item.on("updated", (event, state) => {
+      if (state === "progressing") {
+        if (
+          mainWindow &&
+          !mainWindow.isDestroyed() &&
+          item.getTotalBytes() > 0
+        ) {
+          mainWindow.setProgressBar(
+            item.getReceivedBytes() / item.getTotalBytes(),
+          );
         }
       }
     });
-    item.once('done', (event, state) => {
+    item.once("done", (event, state) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.setProgressBar(-1); // Resetear barra al finalizar
       }
@@ -103,10 +123,10 @@ app.whenReady().then(() => {
   createWindow();
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
 });
 
-app.on('activate', () => {
+app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });

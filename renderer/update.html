@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Actualizando Storm Browser</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-base);
+        color: var(--text-primary);
+        font-family: "Inter", sans-serif;
+        overflow: hidden;
+        -webkit-app-region: drag; /* Permite mover la ventana durante la actualización */
+      }
+      .container {
+        width: 100%;
+        max-width: 450px;
+        text-align: center;
+        padding: 40px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        -webkit-app-region: no-drag;
+      }
+      .logo {
+        margin-bottom: 32px;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+      }
+      p {
+        color: var(--text-secondary);
+        margin-bottom: 32px;
+        font-size: 14px;
+      }
+      .progress-container {
+        width: 100%;
+        margin-bottom: 12px;
+      }
+      .progress-bar-bg {
+        width: 100%;
+        height: 8px;
+        background: var(--bg-elevated);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      #progress-fill {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), var(--purple));
+        transition: width 0.3s ease;
+      }
+      .progress-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">
+        <svg width="64" height="64" viewBox="0 0 48 48" fill="none">
+          <circle
+            cx="24"
+            cy="24"
+            r="22"
+            stroke="url(#grad-update)"
+            stroke-width="2.5"
+          />
+          <path
+            d="M24 8 L38 38 L24 32 L10 38 Z"
+            fill="url(#grad-update)"
+            opacity="0.9"
+          />
+          <defs>
+            <linearGradient
+              id="grad-update"
+              x1="0"
+              y1="0"
+              x2="48"
+              y2="48"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stop-color="#6c8fff" />
+              <stop offset="100%" stop-color="#a78bfa" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h1>Actualizando StormBrowser</h1>
+      <p id="status">Preparando descarga...</p>
+
+      <div class="progress-container">
+        <div class="progress-bar-bg">
+          <div id="progress-fill"></div>
+        </div>
+      </div>
+      <div class="progress-info">
+        <span id="percent">0%</span>
+        <span id="speed">0 MB/s</span>
+      </div>
+    </div>
+
+    <script>
+      const { ipcRenderer } = require("electron");
+      const statusEl = document.getElementById("status");
+      const fillEl = document.getElementById("progress-fill");
+      const percentEl = document.getElementById("percent");
+      const speedEl = document.getElementById("speed");
+
+      ipcRenderer.on("download-progress", (event, progress) => {
+        const percent = Math.floor(progress.percent);
+        fillEl.style.width = percent + "%";
+        percentEl.textContent = percent + "%";
+        statusEl.textContent = "Descargando nueva versión...";
+        const mbps = (progress.bytesPerSecond / (1024 * 1024)).toFixed(2);
+        speedEl.textContent = mbps + " MB/s";
+      });
+
+      ipcRenderer.on("update-downloaded", () => {
+        statusEl.textContent = "¡Listo! Reiniciando para aplicar cambios...";
+        fillEl.style.width = "100%";
+        percentEl.textContent = "100%";
+        setTimeout(() => {
+          ipcRenderer.send("install-update");
+        }, 2000);
+      });
+    </script>
+  </body>
+</html>

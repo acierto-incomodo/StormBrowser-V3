@@ -1,6 +1,6 @@
 {
   "name": "stormbrowser-v3",
-  "version": "1.0.4",
+  "version": "1.0.7",
   "description": "StormBrowser - A modern Electron browser by StormGamesStudios",
   "main": "main.js",
   "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
@@ -31,7 +31,10 @@
       "icon": "renderer/assets/icon.ico"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "renderer/assets/icon.png",
       "category": "Network"
     },
