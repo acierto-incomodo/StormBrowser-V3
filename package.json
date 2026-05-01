@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "StormBrowser - A modern Electron browser by StormGamesStudios",
   "main": "main.js",
+  "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
   "scripts": {
     "start": "electron .",
     "build:win": "electron-builder --win",
