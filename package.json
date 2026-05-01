@@ -1,0 +1,53 @@
+{
+  "name": "storm-browser",
+  "version": "1.0.0",
+  "description": "Storm Browser - A modern Electron browser by StormGamesStudios",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --linux"
+  },
+  "build": {
+    "appId": "com.stormgamesstudios.stormbrowser",
+    "productName": "Storm Browser",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "acierto-incomodo",
+      "repo": "storm-browser"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "renderer/assets/icon.ico"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "renderer/assets/icon.png",
+      "category": "Network"
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false,
+      "createStartMenuShortcut": true,
+      "createDesktopShortcut": true,
+      "include": "installer.nsh",
+      "differentialPackage": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^41.4.0",
+    "electron-builder": "^26.8.1"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.3"
+  }
+}

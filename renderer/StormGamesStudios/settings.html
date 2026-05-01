@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Settings - Storm Browser</title>
+  <link rel="stylesheet" href="./../style.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-base);
+    }
+    .settings-container {
+      width: 100%;
+      max-width: 500px;
+      padding: 40px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    h1 { margin-bottom: 24px; color: var(--accent); font-weight: 500; font-size: 24px; }
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .setting-info { display: flex; flex-direction: column; gap: 4px; }
+    .setting-title { color: var(--text-primary); font-weight: 500; }
+    .setting-desc { color: var(--text-secondary); font-size: 12px; }
+    input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="settings-container">
+    <h1>Ajustes</h1>
+    <div class="setting-item">
+      <div class="setting-info">
+        <span class="setting-title">Recordar pestañas</span>
+        <span class="setting-desc">Restaurar las pestañas abiertas al iniciar el navegador.</span>
+      </div>
+      <input type="checkbox" id="check-remember-tabs">
+    </div>
+    <div class="setting-item">
+      <div class="setting-info">
+        <span class="setting-title">Confirmar al cerrar</span>
+        <span class="setting-desc">Preguntar si se desea guardar la sesión al salir.</span>
+      </div>
+      <input type="checkbox" id="check-confirm-close">
+    </div>
+  </div>
+  <script>
+    const rememberCheck = document.getElementById('check-remember-tabs');
+    const confirmCheck = document.getElementById('check-confirm-close');
+    
+    // Cargar valores actuales
+    const settings = JSON.parse(localStorage.getItem('storm_settings') || '{"remember":false,"confirm":true}');
+    rememberCheck.checked = settings.remember;
+    confirmCheck.checked = settings.confirm;
+
+    // Guardar cambios
+    const save = () => {
+      localStorage.setItem('storm_settings', JSON.stringify({
+        remember: rememberCheck.checked,
+        confirm: confirmCheck.checked
+      }));
+    };
+
+    rememberCheck.addEventListener('change', save);
+    confirmCheck.addEventListener('change', save);
+  </script>
+</body>
+</html>
