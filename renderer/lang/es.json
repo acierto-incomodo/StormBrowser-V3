@@ -29,5 +29,9 @@
   "updating_status_downloading": "Descargando nueva versión...",
   "updating_status_ready": "¡Listo! Reiniciando para aplicar cambios...",
   "system_default": "Predeterminado del sistema",
-  "shortcuts_title": "Accesos Directos (Máx 8)"
+  "shortcuts_title": "Accesos Directos (Máx 8)",
+  "settings_search_engine": "Motor de Búsqueda",
+  "settings_search_desc": "URL para búsquedas (ej: https://google.com/search?q=)",
+  "adblock_enabled": "AdBlock: Activado",
+  "adblock_disabled": "AdBlock: Desactivado"
 }

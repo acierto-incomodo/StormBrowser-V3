@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, session, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, session, shell, protocol } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
@@ -13,10 +13,21 @@ try {
   // Not installed or running in dev without it
 }
 
+protocol.registerSchemesAsPrivileged([
+  { scheme: "stormbrowser", privileges: { standard: true, secure: true } }
+]);
+
 let mainWindow;
 
-// Ruta para el archivo de shortcuts externo
-const shortcutsPath = path.join(app.getPath("userData"), "shortcuts.json");
+// Ruta para archivos externos editables (fuera de ASAR)
+const extraFilesPath = app.isPackaged
+  ? path.join(process.resourcesPath, "extraFiles")
+  : path.join(__dirname, "renderer", "extraFiles");
+
+if (!fs.existsSync(extraFilesPath)) { fs.mkdirSync(extraFilesPath, { recursive: true }); }
+
+const shortcutsPath = path.join(extraFilesPath, "shortcuts.json");
+const searchEnginePath = path.join(extraFilesPath, "search-engine.json");
 
 function getShortcuts() {
   if (!fs.existsSync(shortcutsPath)) {
@@ -35,6 +46,28 @@ function getShortcuts() {
     return [];
   }
 }
+
+function getSearchEngine() {
+  const defaultEngine = { url: "https://www.google.com/search?q=" };
+  if (!fs.existsSync(searchEnginePath)) {
+    fs.writeFileSync(searchEnginePath, JSON.stringify(defaultEngine, null, 2));
+    return defaultEngine.url;
+  }
+  try {
+    const data = JSON.parse(fs.readFileSync(searchEnginePath, "utf8"));
+    return data.url || defaultEngine.url;
+  } catch (e) {
+    return defaultEngine.url;
+  }
+}
+
+// AdBlocker State & List
+let adBlockEnabled = true;
+const adBlockList = [
+  "doubleclick.net", "adservice.google.com", "googleadservices.com",
+  "googlesyndication.com", "adnxs.com", "carbonads.net", "adroll.com",
+  "outbrain.com", "taboola.com", "serving-sys.com", "scorecardresearch.com"
+];
 
 // ID de modelo de usuario para que Windows reconozca el icono en la barra de tareas
 if (process.platform === "win32") {
@@ -94,6 +127,13 @@ ipcMain.on("get-app-version-sync", (event) => {
 });
 
 ipcMain.handle("get-shortcuts", () => getShortcuts());
+ipcMain.handle("get-search-engine", () => getSearchEngine());
+
+ipcMain.handle("save-search-engine", (event, url) => {
+  fs.writeFileSync(searchEnginePath, JSON.stringify({ url }, null, 2));
+  return true;
+});
+
 ipcMain.handle("save-shortcuts", (event, shortcuts) => {
   if (Array.isArray(shortcuts) && shortcuts.length <= 8) {
     fs.writeFileSync(shortcutsPath, JSON.stringify(shortcuts, null, 2));
@@ -143,14 +183,47 @@ ipcMain.on("install-update", () => {
   autoUpdater?.quitAndInstall();
 });
 
+ipcMain.on("toggle-adblock", (event, enabled) => {
+  adBlockEnabled = enabled;
+});
+ipcMain.handle("get-adblock-state", () => adBlockEnabled);
+
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
+  // Registro del protocolo stormbrowser:
+  protocol.registerFileProtocol("stormbrowser", (request, callback) => {
+    const url = request.url.replace("stormbrowser:", "");
+    const host = url.replace(/^\/\//, "").split("/")[0].split("?")[0];
+
+    let filePath = "";
+    if (host === "index" || host === "newtab") {
+      filePath = path.join(__dirname, "renderer", "index.html");
+    } else if (host === "settings") {
+      filePath = path.join(__dirname, "renderer", "StormGamesStudios", "settings.html");
+    } else if (host === "info") {
+      filePath = path.join(__dirname, "renderer", "StormGamesStudios", "info.html");
+    }
+    callback({ path: path.normalize(filePath) });
+  });
+
   // Strip CSP headers so webviews can load any page freely
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const headers = { ...details.responseHeaders };
     delete headers["content-security-policy"];
     delete headers["Content-Security-Policy"];
     callback({ responseHeaders: headers });
+  });
+
+  // Implementación del AdBlocker
+  session.defaultSession.webRequest.onBeforeRequest({ urls: ["*://*/*"] }, (details, callback) => {
+    if (adBlockEnabled) {
+      const isAd = adBlockList.some(domain => details.url.includes(domain));
+      if (isAd) {
+        console.log("Blocked ad:", details.url);
+        return callback({ cancel: true });
+      }
+    }
+    callback({ cancel: false });
   });
 
   // Gestión de progreso de descargas en la barra de tareas

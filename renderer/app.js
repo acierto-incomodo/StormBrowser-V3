@@ -7,8 +7,8 @@ let i18n = {};
 let activeTabId = null;
 let tabCounter = 0;
 
-const HOME_URL = "storm://newtab";
-const SEARCH_ENGINE = "https://www.google.com/search?q=";
+const HOME_URL = "stormbrowser:newtab";
+let SEARCH_ENGINE = "https://www.google.com/search?q=";
 
 // ─── DOM Refs ─────────────────────────────────────────────────────────────────
 const tabsContainer = document.getElementById("tabs-container");
@@ -21,6 +21,7 @@ const btnBack = document.getElementById("btn-back");
 const btnForward = document.getElementById("btn-forward");
 const btnReload = document.getElementById("btn-reload");
 const btnHome = document.getElementById("btn-home");
+const btnAdblock = document.getElementById("btn-adblock");
 const btnInfo = document.getElementById("btn-info");
 const btnSettings = document.getElementById("btn-settings");
 const ntpSearch = document.getElementById("ntp-search");
@@ -293,7 +294,7 @@ function navigate(url) {
   url = url.trim();
 
   let finalUrl;
-  if (/^https?:\/\//i.test(url) || url.startsWith("file://")) {
+  if (/^https?:\/\//i.test(url) || url.startsWith("file://") || url.startsWith("stormbrowser:")) {
     finalUrl = url;
   } else if (url === HOME_URL) {
     finalUrl = HOME_URL;
@@ -308,7 +309,7 @@ function navigate(url) {
 
   if (finalUrl === HOME_URL) {
     tab.url = HOME_URL;
-    tab.title = "New Tab";
+    tab.title = i18n.new_tab || "New Tab";
     tab.favicon = null;
     tab.loading = false;
     if (tab.webview) {
@@ -401,15 +402,29 @@ btnReload.addEventListener("click", () => {
 
 btnHome.addEventListener("click", () => navigate(HOME_URL));
 
+btnAdblock.addEventListener("click", async () => {
+  const currentState = await ipcRenderer.invoke("get-adblock-state");
+  const newState = !currentState;
+  ipcRenderer.send("toggle-adblock", newState);
+  updateAdblockUI(newState);
+});
+
+async function updateAdblockUI(enabled) {
+  if (enabled) {
+    btnAdblock.style.color = "var(--accent)";
+    btnAdblock.title = i18n.adblock_enabled || "AdBlock: ON";
+  } else {
+    btnAdblock.style.color = "var(--text-muted)";
+    btnAdblock.title = i18n.adblock_disabled || "AdBlock: OFF";
+  }
+}
+
 btnInfo.addEventListener("click", () => {
-  const infoPath = "file://" + __dirname + "/StormGamesStudios/info.html";
-  navigate(infoPath);
+  navigate("stormbrowser:info");
 });
 
 btnSettings.addEventListener("click", () => {
-  const settingsPath =
-    "file://" + __dirname + "/StormGamesStudios/settings.html";
-  navigate(settingsPath);
+  navigate("stormbrowser:settings");
 });
 
 // ─── Modal Logic ──────────────────────────────────────────────────────────────
@@ -435,6 +450,10 @@ function handleExitSettings(willRemember) {
     s.remember = willRemember;
     localStorage.setItem("storm_settings", JSON.stringify(s));
   }
+}
+
+async function initSearchEngine() {
+  SEARCH_ENGINE = await ipcRenderer.invoke("get-search-engine");
 }
 
 async function loadShortcuts() {
@@ -584,6 +603,8 @@ function escHtml(str) {
 const savedUrls = JSON.parse(localStorage.getItem("storm_session") || "[]");
 const settings = getSettings();
 initI18n();
+initSearchEngine();
+ipcRenderer.invoke("get-adblock-state").then(updateAdblockUI);
 loadShortcuts();
 
 if (settings.remember && savedUrls.length > 0) {

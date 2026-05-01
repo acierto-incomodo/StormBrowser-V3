@@ -1,6 +1,6 @@
 {
   "name": "stormbrowser-v3",
-  "version": "1.0.12",
+  "version": "1.0.14",
   "description": "StormBrowser - A modern Electron browser by StormGamesStudios",
   "main": "main.js",
   "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
@@ -19,7 +19,15 @@
     "files": [
       "main.js",
       "preload.js",
-      "renderer/**/*"
+      "renderer/**/*",
+      "!renderer/extraFiles/**/*"
+    ],
+    "extraFiles": [
+      {
+        "from": "renderer/extraFiles",
+        "to": "extraFiles",
+        "filter": ["**/*"]
+      }
     ],
     "publish": {
       "provider": "github",

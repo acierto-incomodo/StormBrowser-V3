@@ -73,6 +73,13 @@
       </div>
       <input type="checkbox" id="check-confirm-close">
     </div>
+    <div class="setting-item">
+      <div class="setting-info">
+        <span class="setting-title" id="txt-search-title">Motor de Búsqueda</span>
+        <span class="setting-desc" id="txt-search-desc">URL base para las búsquedas.</span>
+      </div>
+      <input type="text" id="input-search-engine" style="background: var(--bg-elevated); border: 1px solid var(--border); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; width: 200px;">
+    </div>
 
     <!-- Editor de Shortcuts -->
     <h2 id="txt-shortcuts-title">Accesos Directos (Máx 8)</h2>
@@ -86,6 +93,7 @@
     const langSelect = document.getElementById('select-lang');
     const shortcutsList = document.getElementById('shortcuts-list');
     const addBtn = document.getElementById('add-shortcut');
+    const searchInput = document.getElementById('input-search-engine');
     let currentShortcuts = [];
     
     // Cargar valores actuales
@@ -104,9 +112,13 @@
       document.getElementById('txt-remember-desc').textContent = data.settings_remember_tabs_desc;
       document.getElementById('txt-confirm-title').textContent = data.settings_confirm_close;
       document.getElementById('txt-confirm-desc').textContent = data.settings_confirm_close_desc;
+      document.getElementById('txt-search-title').textContent = data.settings_search_engine || "Motor de búsqueda";
+      document.getElementById('txt-search-desc').textContent = data.settings_search_desc || "URL base para búsquedas.";
       langSelect.options[0].textContent = data.system_default;
       document.getElementById('txt-shortcuts-title').textContent = data.shortcuts_title || "Accesos Directos (Máx 8)";
     });
+
+    ipcRenderer.invoke('get-search-engine').then(url => { searchInput.value = url; });
 
     async function loadShortcuts() {
       currentShortcuts = await ipcRenderer.invoke('get-shortcuts');
@@ -150,6 +162,10 @@
     async function saveShortcuts() {
       await ipcRenderer.invoke('save-shortcuts', currentShortcuts);
     }
+
+    searchInput.onchange = async () => {
+      await ipcRenderer.invoke('save-search-engine', searchInput.value);
+    };
 
     // Guardar cambios
     const save = () => {
