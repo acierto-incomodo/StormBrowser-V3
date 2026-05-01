@@ -28,5 +28,11 @@
   "updating_status_preparing": "Preparing download...",
   "updating_status_downloading": "Downloading new version...",
   "updating_status_ready": "Done! Restarting to apply changes...",
-  "system_default": "System Default"
+  "system_default": "System Default",
+  "check_updates": "Check for updates",
+  "shortcuts_title": "Shortcuts (Max 8)",
+  "settings_search_engine": "Search Engine",
+  "settings_search_desc": "URL for searches (e.g., https://google.com/search?q=)",
+  "adblock_enabled": "AdBlock: Enabled",
+  "adblock_disabled": "AdBlock: Disabled"
 }

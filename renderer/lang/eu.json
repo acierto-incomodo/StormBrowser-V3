@@ -28,5 +28,11 @@
   "updating_status_preparing": "Deskarga prestatzen...",
   "updating_status_downloading": "Bertsio berria deskargatzen...",
   "updating_status_ready": "Prest! Aldaketak aplikatzeko berrabiarazten...",
-  "system_default": "Sistemaren lehenetsia"
+  "system_default": "Sistemaren lehenetsia",
+  "check_updates": "Eguneraketak egiaztatu",
+  "shortcuts_title": "Lasterbideak (Gehienez 8)",
+  "settings_search_engine": "Bilatzailea",
+  "settings_search_desc": "Bilaketetarako URLa (adibidez: https://google.com/search?q=)",
+  "adblock_enabled": "AdBlock: Aktibatuta",
+  "adblock_disabled": "AdBlock: Desaktibatuta"
 }

@@ -33,5 +33,6 @@
   "settings_search_engine": "Motor de Búsqueda",
   "settings_search_desc": "URL para búsquedas (ej: https://google.com/search?q=)",
   "adblock_enabled": "AdBlock: Activado",
-  "adblock_disabled": "AdBlock: Desactivado"
+  "adblock_disabled": "AdBlock: Desactivado",
+  "check_updates": "Comprobar actualizaciones"
 }

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, session, shell, protocol } = require("electron");
+const { app, BrowserWindow, ipcMain, session, shell, Menu, MenuItem } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
@@ -13,21 +13,23 @@ try {
   // Not installed or running in dev without it
 }
 
-protocol.registerSchemesAsPrivileged([
-  { scheme: "stormbrowser", privileges: { standard: true, secure: true } }
-]);
-
 let mainWindow;
 
-// Ruta para archivos externos editables (fuera de ASAR)
-const extraFilesPath = app.isPackaged
-  ? path.join(process.resourcesPath, "extraFiles")
+// Rutas para archivos externos (editables fuera del asar en producción)
+const baseExtraPath = app.isPackaged 
+  ? path.join(process.resourcesPath, "extraFiles") 
   : path.join(__dirname, "renderer", "extraFiles");
 
-if (!fs.existsSync(extraFilesPath)) { fs.mkdirSync(extraFilesPath, { recursive: true }); }
+if (!fs.existsSync(baseExtraPath)) fs.mkdirSync(baseExtraPath, { recursive: true });
 
-const shortcutsPath = path.join(extraFilesPath, "shortcuts.json");
-const searchEnginePath = path.join(extraFilesPath, "search-engine.json");
+const shortcutsPath = path.join(baseExtraPath, "shortcuts.json");
+const searchEnginePath = path.join(baseExtraPath, "search-engine.json");
+const settingsPath = path.join(baseExtraPath, "settings.json");
+const customSearchPath = path.join(baseExtraPath, "custom.search-engine.json");
+const iconsDir = path.join(app.getPath("userData"), "icons");
+
+// Asegurar que la carpeta de iconos existe
+if (!fs.existsSync(iconsDir)) fs.mkdirSync(iconsDir, { recursive: true });
 
 function getShortcuts() {
   if (!fs.existsSync(shortcutsPath)) {
@@ -47,6 +49,24 @@ function getShortcuts() {
   }
 }
 
+function getSettingsFile() {
+  const defaultSettings = {
+    remember: false,
+    confirm: true,
+    language: "system"
+  };
+  if (!fs.existsSync(settingsPath)) {
+    fs.writeFileSync(settingsPath, JSON.stringify(defaultSettings, null, 2));
+    return defaultSettings;
+  }
+  try {
+    return JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  } catch (e) {
+    console.error("Error reading settings.json:", e);
+    return defaultSettings;
+  }
+}
+
 function getSearchEngine() {
   const defaultEngine = { url: "https://www.google.com/search?q=" };
   if (!fs.existsSync(searchEnginePath)) {
@@ -59,6 +79,52 @@ function getSearchEngine() {
   } catch (e) {
     return defaultEngine.url;
   }
+}
+
+function getCustomSearchEngines() {
+  if (!fs.existsSync(customSearchPath)) {
+    const defaults = [
+      { name: "Bing", url: "https://www.bing.com/search?q=" },
+      { name: "DuckDuckGo", url: "https://duckduckgo.com/?q=" }
+    ];
+    fs.writeFileSync(customSearchPath, JSON.stringify(defaults, null, 2));
+    return defaults;
+  }
+  try {
+    return JSON.parse(fs.readFileSync(customSearchPath, "utf8"));
+  } catch (e) { return []; }
+}
+
+async function downloadFavicon(url, name) {
+  try {
+    const domain = new URL(url).hostname;
+    const iconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    const iconPath = path.join(iconsDir, `${Buffer.from(name).toString('hex')}.png`);
+    
+    const { net } = require('electron');
+    const request = net.request(iconUrl);
+    
+    return new Promise((resolve) => {
+      request.on('response', (response) => {
+        const data = [];
+        response.on('data', (chunk) => data.push(chunk));
+        response.on('end', () => {
+          const buffer = Buffer.concat(data);
+          fs.writeFileSync(iconPath, buffer);
+          resolve(`local-icon://${Buffer.from(name).toString('hex')}.png`);
+        });
+      });
+      request.on('error', () => resolve(null));
+      request.end();
+    });
+  } catch (e) { return null; }
+}
+
+function cleanupIcons(shortcuts) {
+  const activeIcons = shortcuts.map(s => `${Buffer.from(s.name).toString('hex')}.png`);
+  fs.readdirSync(iconsDir).forEach(file => {
+    if (!activeIcons.includes(file)) fs.unlinkSync(path.join(iconsDir, file));
+  });
 }
 
 // AdBlocker State & List
@@ -88,6 +154,7 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
       webviewTag: true,
+      spellcheck: true,
       sandbox: false,
     },
     icon: path.join(__dirname, process.platform === 'win32' ? "renderer/assets/icon.ico" : "renderer/assets/icon.png"),
@@ -97,6 +164,7 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, "renderer/index.html"));
 
   mainWindow.once("ready-to-show", () => {
+    mainWindow.maximize();
     mainWindow.show();
     // Check for updates once the window is visible (only in packaged app)
     if (app.isPackaged && autoUpdater) {
@@ -125,18 +193,36 @@ ipcMain.handle("get-app-version", () => app.getVersion());
 ipcMain.on("get-app-version-sync", (event) => {
   event.returnValue = app.getVersion();
 });
+ipcMain.on("get-settings-sync", (event) => {
+  event.returnValue = getSettingsFile();
+});
 
+ipcMain.handle("get-settings", () => getSettingsFile());
+ipcMain.handle("save-settings", (event, settings) => {
+  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+  return true;
+});
 ipcMain.handle("get-shortcuts", () => getShortcuts());
 ipcMain.handle("get-search-engine", () => getSearchEngine());
+ipcMain.handle("get-custom-search-engines", () => getCustomSearchEngines());
 
 ipcMain.handle("save-search-engine", (event, url) => {
   fs.writeFileSync(searchEnginePath, JSON.stringify({ url }, null, 2));
   return true;
 });
 
-ipcMain.handle("save-shortcuts", (event, shortcuts) => {
+ipcMain.handle("save-custom-search-engines", (event, engines) => {
+  fs.writeFileSync(customSearchPath, JSON.stringify(engines, null, 2));
+  return true;
+});
+
+ipcMain.handle("save-shortcuts", async (event, shortcuts) => {
   if (Array.isArray(shortcuts) && shortcuts.length <= 8) {
+    for (let s of shortcuts) {
+      if (s.url && s.url !== 'https://' && !s.icon) s.icon = await downloadFavicon(s.url, s.name);
+    }
     fs.writeFileSync(shortcutsPath, JSON.stringify(shortcuts, null, 2));
+    cleanupIcons(shortcuts);
     return true;
   }
   return false;
@@ -179,6 +265,14 @@ if (autoUpdater) {
   });
 }
 
+ipcMain.on("check-for-updates", () => {
+  if (app.isPackaged && autoUpdater) {
+    autoUpdater.checkForUpdatesAndNotify();
+  } else {
+    console.log("Update check requested in development mode.");
+  }
+});
+
 ipcMain.on("install-update", () => {
   autoUpdater?.quitAndInstall();
 });
@@ -190,20 +284,41 @@ ipcMain.handle("get-adblock-state", () => adBlockEnabled);
 
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
-  // Registro del protocolo stormbrowser:
-  protocol.registerFileProtocol("stormbrowser", (request, callback) => {
-    const url = request.url.replace("stormbrowser:", "");
-    const host = url.replace(/^\/\//, "").split("/")[0].split("?")[0];
+  // Registrar protocolo para iconos locales
+  session.defaultSession.protocol.registerFileProtocol('local-icon', (request, callback) => {
+    const url = request.url.replace('local-icon://', '');
+    try {
+      return callback(path.join(iconsDir, url));
+    } catch (e) { return callback({ error: -6 }); }
+  });
 
-    let filePath = "";
-    if (host === "index" || host === "newtab") {
-      filePath = path.join(__dirname, "renderer", "index.html");
-    } else if (host === "settings") {
-      filePath = path.join(__dirname, "renderer", "StormGamesStudios", "settings.html");
-    } else if (host === "info") {
-      filePath = path.join(__dirname, "renderer", "StormGamesStudios", "info.html");
-    }
-    callback({ path: path.normalize(filePath) });
+  // Menú contextual global (Clic derecho) con soporte para Corrector Ortográfico
+  app.on('web-contents-created', (event, contents) => {
+    contents.on('context-menu', (event, params) => {
+      const menu = new Menu();
+
+      // Sugerencias de ortografía
+      for (const suggestion of params.dictionarySuggestions) {
+        menu.append(new MenuItem({
+          label: suggestion,
+          click: () => contents.replaceMisspelling(suggestion)
+        }));
+      }
+
+      if (params.dictionarySuggestions.length > 0) menu.append(new MenuItem({ type: 'separator' }));
+
+      menu.append(new MenuItem({ label: 'Atrás', enabled: contents.canGoBack(), click: () => contents.goBack() }));
+      menu.append(new MenuItem({ label: 'Adelante', enabled: contents.canGoForward(), click: () => contents.goForward() }));
+      menu.append(new MenuItem({ label: 'Recargar', click: () => contents.reload() }));
+      menu.append(new MenuItem({ type: 'separator' }));
+      menu.append(new MenuItem({ label: 'Cortar', role: 'cut', enabled: params.editFlags.canCut }));
+      menu.append(new MenuItem({ label: 'Copiar', role: 'copy', enabled: params.editFlags.canCopy }));
+      menu.append(new MenuItem({ label: 'Pegar', role: 'paste', enabled: params.editFlags.canPaste }));
+      menu.append(new MenuItem({ type: 'separator' }));
+      menu.append(new MenuItem({ label: 'Inspeccionar', click: () => contents.inspectElement(params.x, params.y) }));
+
+      menu.popup();
+    });
   });
 
   // Strip CSP headers so webviews can load any page freely

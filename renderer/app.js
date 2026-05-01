@@ -7,7 +7,7 @@ let i18n = {};
 let activeTabId = null;
 let tabCounter = 0;
 
-const HOME_URL = "stormbrowser:newtab";
+const HOME_URL = "newtab";
 let SEARCH_ENGINE = "https://www.google.com/search?q=";
 
 // ─── DOM Refs ─────────────────────────────────────────────────────────────────
@@ -294,7 +294,7 @@ function navigate(url) {
   url = url.trim();
 
   let finalUrl;
-  if (/^https?:\/\//i.test(url) || url.startsWith("file://") || url.startsWith("stormbrowser:")) {
+  if (/^https?:\/\//i.test(url) || url.startsWith("file://")) {
     finalUrl = url;
   } else if (url === HOME_URL) {
     finalUrl = HOME_URL;
@@ -420,11 +420,14 @@ async function updateAdblockUI(enabled) {
 }
 
 btnInfo.addEventListener("click", () => {
-  navigate("stormbrowser:info");
+  const infoPath = "file://" + __dirname + "/StormGamesStudios/info.html";
+  navigate(infoPath);
 });
 
 btnSettings.addEventListener("click", () => {
-  navigate("stormbrowser:settings");
+  const settingsPath =
+    "file://" + __dirname + "/StormGamesStudios/settings.html";
+  navigate(settingsPath);
 });
 
 // ─── Modal Logic ──────────────────────────────────────────────────────────────
@@ -444,11 +447,11 @@ btnExitSave.addEventListener("click", () => {
 });
 
 function handleExitSettings(willRemember) {
-  if (dontAskExit.checked) {
-    const s = getSettings();
-    s.confirm = false;
-    s.remember = willRemember;
-    localStorage.setItem("storm_settings", JSON.stringify(s));
+  if (dontAskExit.checked) { // Si el usuario marcó "No volver a preguntar"
+    const settings = getSettings(); // Obtener los ajustes actuales
+    settings.confirm = false; // Desactivar la confirmación
+    settings.remember = willRemember; // Guardar la preferencia de recordar pestañas
+    ipcRenderer.invoke("save-settings", settings); // Guardar los ajustes actualizados
   }
 }
 
@@ -464,10 +467,11 @@ async function loadShortcuts() {
   shortcuts.forEach(s => {
     const el = document.createElement("div");
     el.className = "shortcut";
-    el.innerHTML = `
-      <div class="shortcut-icon">${s.name.charAt(0).toUpperCase()}</div>
-      <span>${escHtml(s.name)}</span>
-    `;
+    const iconHtml = s.icon 
+      ? `<img src="${s.icon}" class="shortcut-icon-img" onerror="this.src=''; this.parentElement.innerHTML='${s.name.charAt(0).toUpperCase()}'">`
+      : `<div class="shortcut-icon-text">${s.name.charAt(0).toUpperCase()}</div>`;
+      
+    el.innerHTML = `<div class="shortcut-icon">${iconHtml}</div><span>${escHtml(s.name)}</span>`;
     el.addEventListener("click", () => navigate(s.url));
     container.appendChild(el);
   });
@@ -512,10 +516,10 @@ function applyTranslations() {
 }
 
 function getSettings() {
-  return JSON.parse(
-    localStorage.getItem("storm_settings") ||
-      '{"remember":false,"confirm":true}',
-  );
+  // Ahora los ajustes se cargan del proceso principal
+  // Esto es síncrono para evitar problemas de timing al inicio
+  // En un entorno real, esto debería ser asíncrono y manejarse con promesas.
+  return ipcRenderer.sendSync("get-settings-sync");
 }
 
 function saveSession() {
@@ -602,7 +606,7 @@ function escHtml(str) {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 const savedUrls = JSON.parse(localStorage.getItem("storm_session") || "[]");
 const settings = getSettings();
-initI18n();
+initI18n(); 
 initSearchEngine();
 ipcRenderer.invoke("get-adblock-state").then(updateAdblockUI);
 loadShortcuts();

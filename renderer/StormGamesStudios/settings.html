@@ -8,9 +8,11 @@
   <style>
     body {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       background: var(--bg-base);
+      padding: 40px 0;
+      overflow-y: auto;
     }
     .settings-container {
       width: 100%;
@@ -33,13 +35,13 @@
     .setting-title { color: var(--text-primary); font-weight: 500; }
     .setting-desc { color: var(--text-secondary); font-size: 12px; }
     input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
-    select { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; outline: none; }
+    select, input[type="text"] { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); padding: 6px 10px; border-radius: 4px; outline: none; }
     .shortcuts-editor { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-    .shortcut-row { display: flex; gap: 8px; align-items: center; background: var(--bg-elevated); padding: 8px; border-radius: var(--radius-sm); }
-    .shortcut-row input { flex: 1; background: transparent; border: 1px solid var(--border); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-    .btn-del { color: #f87171; cursor: pointer; background: none; border: none; font-size: 16px; }
-    .btn-add { margin-top: 8px; padding: 6px; background: var(--accent-soft); color: var(--accent); border: 1px dashed var(--accent); border-radius: 4px; cursor: pointer; font-size: 12px; }
-    .btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
+    .shortcut-row { display: grid; grid-template-columns: 1fr 2fr auto; gap: 8px; align-items: center; background: var(--bg-elevated); padding: 8px; border-radius: var(--radius-sm); border: 1px solid transparent; }
+    .shortcut-row.active { border-color: var(--accent); }
+    .btn-save { margin-top: 32px; width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; }
+    .search-engines-mgr { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .add-engine-form { display: grid; grid-template-columns: 1fr 2fr auto; gap: 5px; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -76,15 +78,23 @@
     <div class="setting-item">
       <div class="setting-info">
         <span class="setting-title" id="txt-search-title">Motor de Búsqueda</span>
-        <span class="setting-desc" id="txt-search-desc">URL base para las búsquedas.</span>
+        <span class="setting-desc" id="txt-search-desc">Selecciona o añade motores de búsqueda.</span>
       </div>
-      <input type="text" id="input-search-engine" style="background: var(--bg-elevated); border: 1px solid var(--border); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; width: 200px;">
+      <select id="select-search-engine"></select>
+    </div>
+    <div class="search-engines-mgr">
+      <div class="add-engine-form">
+        <input type="text" id="new-engine-name" placeholder="Google">
+        <input type="text" id="new-engine-url" placeholder="https://google.com/search?q=">
+        <button id="btn-add-engine" style="background:var(--accent); border:none; color:white; padding:0 10px; border-radius:4px; cursor:pointer;">+</button>
+      </div>
     </div>
 
     <!-- Editor de Shortcuts -->
-    <h2 id="txt-shortcuts-title">Accesos Directos (Máx 8)</h2>
+    <h2 id="txt-shortcuts-title">Accesos Directos (8 slots)</h2>
     <div id="shortcuts-list" class="shortcuts-editor"></div>
-    <button id="add-shortcut" class="btn-add">+ Añadir Acceso Directo</button>
+
+    <button id="btn-save-all" class="btn-save">Guardar Cambios</button>
   </div>
 
   <script>
@@ -92,18 +102,21 @@
     const confirmCheck = document.getElementById('check-confirm-close');
     const langSelect = document.getElementById('select-lang');
     const shortcutsList = document.getElementById('shortcuts-list');
-    const addBtn = document.getElementById('add-shortcut');
-    const searchInput = document.getElementById('input-search-engine');
+    const searchSelect = document.getElementById('select-search-engine');
+    const btnSaveAll = document.getElementById('btn-save-all');
     let currentShortcuts = [];
+    let customEngines = [];
     
     // Cargar valores actuales
-    const settings = JSON.parse(localStorage.getItem('storm_settings') || '{"remember":false,"confirm":true,"language":"system"}');
-    rememberCheck.checked = settings.remember;
-    confirmCheck.checked = settings.confirm;
-    langSelect.value = settings.language || 'system';
-
-    // Aplicar traducciones
-    ipcRenderer.invoke('get-translations', settings.language).then(({ data }) => {
+    ipcRenderer.invoke('get-settings').then(data => {
+      currentSettings = data;
+      rememberCheck.checked = currentSettings.remember;
+      confirmCheck.checked = currentSettings.confirm;
+      langSelect.value = currentSettings.language || 'system';
+      
+      // Cargar traducciones una vez tenemos el idioma de los ajustes
+      return ipcRenderer.invoke('get-translations', currentSettings.language);
+    }).then(({ data }) => {
       document.getElementById('page-title').textContent = data.settings + " - StormBrowser";
       document.getElementById('txt-settings').textContent = data.settings;
       document.getElementById('txt-lang-title').textContent = data.settings_language;
@@ -115,13 +128,36 @@
       document.getElementById('txt-search-title').textContent = data.settings_search_engine || "Motor de búsqueda";
       document.getElementById('txt-search-desc').textContent = data.settings_search_desc || "URL base para búsquedas.";
       langSelect.options[0].textContent = data.system_default;
-      document.getElementById('txt-shortcuts-title').textContent = data.shortcuts_title || "Accesos Directos (Máx 8)";
     });
 
-    ipcRenderer.invoke('get-search-engine').then(url => { searchInput.value = url; });
+    async function initEngines() {
+      const activeUrl = await ipcRenderer.invoke('get-search-engine');
+      customEngines = await ipcRenderer.invoke('get-custom-search-engines');
+      const defaults = [ {name: "Google", url: "https://www.google.com/search?q="} ];
+      
+      searchSelect.innerHTML = '';
+      [...defaults, ...customEngines].forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.url;
+        opt.textContent = e.name;
+        if (e.url === activeUrl) opt.selected = true;
+        searchSelect.appendChild(opt);
+      });
+    }
+
+    document.getElementById('btn-add-engine').onclick = async () => {
+      const name = document.getElementById('new-engine-name').value;
+      const url = document.getElementById('new-engine-url').value;
+      if (name && url) {
+        customEngines.push({ name, url });
+        await ipcRenderer.invoke('save-custom-search-engines', customEngines);
+        initEngines();
+      }
+    };
 
     async function loadShortcuts() {
-      currentShortcuts = await ipcRenderer.invoke('get-shortcuts');
+      const data = await ipcRenderer.invoke('get-shortcuts');
+      currentShortcuts = Array(8).fill().map((_, i) => data[i] || { name: '', url: 'https://', icon: null });
       renderShortcuts();
     }
 
@@ -131,57 +167,29 @@
         const row = document.createElement('div');
         row.className = 'shortcut-row';
         row.innerHTML = `
-          <input type="text" value="${s.name}" placeholder="Nombre" onchange="updateShortcut(${i}, 'name', this.value)">
-          <input type="text" value="${s.url}" placeholder="URL" onchange="updateShortcut(${i}, 'url', this.value)">
-          <button class="btn-del" onclick="removeShortcut(${i})">×</button>
+          <input type="text" value="${s.name}" placeholder="Slot ${i+1}" onchange="currentShortcuts[${i}].name = this.value; currentShortcuts[${i}].icon=null">
+          <input type="text" value="${s.url}" placeholder="URL" onchange="currentShortcuts[${i}].url = this.value; currentShortcuts[${i}].icon=null">
+          <div style="width:16px; height:16px; background:${s.icon?'var(--accent)':'var(--text-muted)'}; border-radius:50%"></div>
         `;
         shortcutsList.appendChild(row);
       });
-      addBtn.disabled = currentShortcuts.length >= 8;
     }
 
-    window.updateShortcut = (idx, key, val) => {
-      currentShortcuts[idx][key] = val;
-      saveShortcuts();
-    };
-
-    window.removeShortcut = (idx) => {
-      currentShortcuts.splice(idx, 1);
-      renderShortcuts();
-      saveShortcuts();
-    };
-
-    addBtn.onclick = () => {
-      if (currentShortcuts.length < 8) {
-        currentShortcuts.push({ name: 'Nuevo', url: 'https://' });
-        renderShortcuts();
-        saveShortcuts();
-      }
-    };
-
-    async function saveShortcuts() {
-      await ipcRenderer.invoke('save-shortcuts', currentShortcuts);
-    }
-
-    searchInput.onchange = async () => {
-      await ipcRenderer.invoke('save-search-engine', searchInput.value);
-    };
-
-    // Guardar cambios
-    const save = () => {
-      localStorage.setItem('storm_settings', JSON.stringify({
+    btnSaveAll.onclick = async () => {
+      currentSettings = {
         remember: rememberCheck.checked,
         confirm: confirmCheck.checked,
         language: langSelect.value
-      }));
+      };
+      await ipcRenderer.invoke('save-settings', currentSettings);
+      await ipcRenderer.invoke('save-search-engine', searchSelect.value);
+      await ipcRenderer.invoke('save-shortcuts', currentShortcuts.filter(s => s.name && s.url !== 'https://'));
+      
       if (confirm('Reabrir pestaña para aplicar cambios / Reopen tab to apply changes?')) location.reload();
     };
 
-    rememberCheck.addEventListener('change', save);
-    confirmCheck.addEventListener('change', save);
-    langSelect.addEventListener('change', save);
-
     loadShortcuts();
+    initEngines();
   </script>
 </body>
 </html>
