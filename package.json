@@ -1,7 +1,7 @@
 {
-  "name": "storm-browser",
+  "name": "stormbrowser-v3",
   "version": "1.0.0",
-  "description": "Storm Browser - A modern Electron browser by StormGamesStudios",
+  "description": "StormBrowser - A modern Electron browser by StormGamesStudios",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -11,7 +11,7 @@
   },
   "build": {
     "appId": "com.stormgamesstudios.stormbrowser",
-    "productName": "Storm Browser",
+    "productName": "StormBrowser",
     "directories": {
       "output": "dist"
     },
@@ -23,7 +23,7 @@
     "publish": {
       "provider": "github",
       "owner": "acierto-incomodo",
-      "repo": "storm-browser"
+      "repo": "StormBrowser-V3"
     },
     "win": {
       "target": "nsis",
