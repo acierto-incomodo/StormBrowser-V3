@@ -116,6 +116,7 @@
       </div>
       <div class="progress-info">
         <span id="percent">0%</span>
+        <span id="size">0 MB / 0 MB</span>
         <span id="speed">0 MB/s</span>
       </div>
     </div>
@@ -126,6 +127,7 @@
       const fillEl = document.getElementById("progress-fill");
       const percentEl = document.getElementById("percent");
       const speedEl = document.getElementById("speed");
+      const sizeEl = document.getElementById("size");
       let i18n = {};
 
       const settings = JSON.parse(localStorage.getItem('storm_settings') || '{}');
@@ -140,6 +142,11 @@
         const percent = Math.floor(progress.percent);
         fillEl.style.width = percent + "%";
         percentEl.textContent = percent + "%";
+
+        const transferred = (progress.transferred / (1024 * 1024)).toFixed(2);
+        const total = (progress.total / (1024 * 1024)).toFixed(2);
+        sizeEl.textContent = `${transferred} MB / ${total} MB`;
+
         statusEl.textContent = i18n.updating_status_downloading || "...";
         const mbps = (progress.bytesPerSecond / (1024 * 1024)).toFixed(2);
         speedEl.textContent = mbps + " MB/s";

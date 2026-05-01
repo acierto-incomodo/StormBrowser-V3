@@ -22,7 +22,7 @@
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
-  --titlebar-h: 40px;
+  --titlebar-h: 44px;
   --navbar-h: 48px;
   --tab-h: 34px;
 }
@@ -72,7 +72,7 @@ body {
   height: 100%;
   overflow: hidden;
   gap: 2px;
-  padding: 4px 4px 0;
+  padding: 6px 4px 0;
 }
 
 #tabs-container {
