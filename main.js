@@ -63,7 +63,10 @@ ipcMain.handle('window-is-maximized', () => mainWindow?.isMaximized() ?? false);
 // ─── Updater IPC ──────────────────────────────────────────────────────────────
 if (autoUpdater) {
   autoUpdater.on('update-available', () => {
-    mainWindow?.webContents.send('update-available');
+    mainWindow?.loadFile(path.join(__dirname, 'renderer/update.html'));
+  });
+  autoUpdater.on('download-progress', (progressObj) => {
+    mainWindow?.webContents.send('download-progress', progressObj.percent);
   });
   autoUpdater.on('update-downloaded', () => {
     mainWindow?.webContents.send('update-downloaded');
@@ -82,6 +85,22 @@ app.whenReady().then(() => {
     delete headers['content-security-policy'];
     delete headers['Content-Security-Policy'];
     callback({ responseHeaders: headers });
+  });
+
+  // Gestión de progreso de descargas en la barra de tareas
+  session.defaultSession.on('will-download', (event, item) => {
+    item.on('updated', (event, state) => {
+      if (state === 'progressing') {
+        if (mainWindow && !mainWindow.isDestroyed() && item.getTotalBytes() > 0) {
+          mainWindow.setProgressBar(item.getReceivedBytes() / item.getTotalBytes());
+        }
+      }
+    });
+    item.once('done', (event, state) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.setProgressBar(-1); // Resetear barra al finalizar
+      }
+    });
   });
 
   createWindow();

@@ -1,0 +1,15 @@
+{
+  "app_name": "Storm Browser",
+  "new_tab": "Fitxa berria",
+  "settings": "Ezarpenak",
+  "info": "Informazioa",
+  "search_placeholder": "Bilatu webgunean edo idatzi URLa...",
+  "back": "Atzera",
+  "forward": "Aurrera",
+  "reload": "Berritu",
+  "home": "Hasiera",
+  "save_and_close": "Gorde eta itxi",
+  "just_close": "Itxi soilik",
+  "cancel": "Utzi",
+  "dont_ask_again": "Ez galdetu berriro"
+}

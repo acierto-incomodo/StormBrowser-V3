@@ -1,0 +1,15 @@
+{
+  "app_name": "Storm Browser",
+  "new_tab": "Nueva pestaña",
+  "settings": "Ajustes",
+  "info": "Información",
+  "search_placeholder": "Busca en la web o introduce una URL...",
+  "back": "Atrás",
+  "forward": "Adelante",
+  "reload": "Recargar",
+  "home": "Inicio",
+  "save_and_close": "Guardar y cerrar",
+  "just_close": "Solo cerrar",
+  "cancel": "Cancelar",
+  "dont_ask_again": "No volver a preguntar"
+}
