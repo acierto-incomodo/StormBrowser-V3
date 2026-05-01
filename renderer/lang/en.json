@@ -11,5 +11,22 @@
   "save_and_close": "Save and close",
   "just_close": "Just close",
   "cancel": "Cancel",
-  "dont_ask_again": "Don't ask again"
+  "dont_ask_again": "Don't ask again",
+  "close_modal_title": "Close StormBrowser?",
+  "close_modal_desc": "You have several tabs open. Do you want to save them for next time?",
+  "about_title": "About StormBrowser",
+  "version_text": "Version",
+  "about_desc": "A modern, dark browser built with Electron and Chromium.",
+  "developed_by": "Developed by StormGamesStudios.",
+  "settings_language": "Language",
+  "settings_language_desc": "Select the interface language.",
+  "settings_remember_tabs": "Remember tabs",
+  "settings_remember_tabs_desc": "Restore open tabs when starting the browser.",
+  "settings_confirm_close": "Confirm on close",
+  "settings_confirm_close_desc": "Ask whether to save the session when exiting.",
+  "updating_title": "Updating StormBrowser",
+  "updating_status_preparing": "Preparing download...",
+  "updating_status_downloading": "Downloading new version...",
+  "updating_status_ready": "Done! Restarting to apply changes...",
+  "system_default": "System Default"
 }

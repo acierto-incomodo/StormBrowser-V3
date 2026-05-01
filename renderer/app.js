@@ -3,6 +3,7 @@ const { ipcRenderer } = require("electron");
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let tabs = [];
+let i18n = {};
 let activeTabId = null;
 let tabCounter = 0;
 
@@ -65,7 +66,7 @@ function createTab(url = HOME_URL) {
   const tab = {
     id,
     url,
-    title: isNewTab ? "New Tab" : url,
+    title: isNewTab ? (i18n.new_tab || "New Tab") : url,
     favicon: null,
     loading: !isNewTab,
     webview,
@@ -104,6 +105,13 @@ function renderTabEl(tab) {
   el.addEventListener("click", (e) => {
     if (e.target.closest(".tab-close")) return;
     switchTab(tab.id);
+  });
+
+  // Cierre con clic central (rueda del ratón)
+  el.addEventListener("auxclick", (e) => {
+    if (e.button === 1) {
+      closeTab(tab.id);
+    }
   });
 
   el.querySelector(".tab-close").addEventListener("click", (e) => {
@@ -154,6 +162,16 @@ function switchTab(id) {
   urlBar.value = isNewTab ? "" : tab.url;
   updateNavButtons(tab);
   updateLockIcon(tab.url);
+
+  // Asegurar que la pestaña sea visible al seleccionarla
+  const tabEl = document.getElementById(`tab-${id}`);
+  if (tabEl) {
+    tabEl.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  }
 }
 
 function closeTab(id) {
@@ -418,6 +436,44 @@ function handleExitSettings(willRemember) {
   }
 }
 
+async function initI18n() {
+  const settings = getSettings();
+  const res = await ipcRenderer.invoke('get-translations', settings.language);
+  i18n = res.data;
+  applyTranslations();
+}
+
+function applyTranslations() {
+  // Navegación y Tooltips
+  btnBack.title = i18n.back;
+  btnForward.title = i18n.forward;
+  btnReload.title = i18n.reload;
+  btnHome.title = i18n.home;
+  btnInfo.title = i18n.info;
+  btnSettings.title = i18n.settings;
+  document.getElementById('new-tab-btn').title = i18n.new_tab;
+  urlBar.placeholder = i18n.search_placeholder;
+
+  // Modal de salida
+  document.querySelector('#exit-modal h3').textContent = i18n.close_modal_title;
+  document.querySelector('#exit-modal p').textContent = i18n.close_modal_desc;
+  btnExitCancel.textContent = i18n.cancel;
+  btnExitClose.textContent = i18n.just_close;
+  btnExitSave.textContent = i18n.save_and_close;
+  // Traducir el texto del checkbox de "no volver a preguntar"
+  const label = document.querySelector('.modal-options label');
+  if (label) {
+    label.childNodes[1].textContent = " " + i18n.dont_ask_again;
+  }
+
+  // Página de nueva pestaña (NTP)
+  ntpSearch.placeholder = i18n.search_placeholder;
+  document.querySelector('#ntp-logo span').textContent = i18n.app_name;
+  
+  // Actualizar títulos de pestañas existentes si son "New Tab"
+  tabs.forEach(t => { if (t.url === HOME_URL) { t.title = i18n.new_tab; updateTabEl(t); } });
+}
+
 function getSettings() {
   return JSON.parse(
     localStorage.getItem("storm_settings") ||
@@ -443,6 +499,14 @@ urlBar.addEventListener("keydown", (e) => {
 });
 
 urlBar.addEventListener("focus", () => urlBar.select());
+
+// Scroll horizontal con la rueda del ratón en las pestañas
+tabsContainer.addEventListener("wheel", (e) => {
+  if (e.deltaY !== 0) {
+    e.preventDefault();
+    tabsContainer.scrollLeft += e.deltaY;
+  }
+});
 
 // NTP search
 function ntpNavigate() {
@@ -505,6 +569,7 @@ function escHtml(str) {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 const savedUrls = JSON.parse(localStorage.getItem("storm_session") || "[]");
 const settings = getSettings();
+initI18n();
 
 if (settings.remember && savedUrls.length > 0) {
   savedUrls.forEach((url) => createTab(url));

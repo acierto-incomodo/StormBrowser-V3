@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>const { ipcRenderer } = require('electron');</script>
   <meta charset="UTF-8">
-  <title>Settings - StormBrowser</title>
+  <title id="page-title">Settings - StormBrowser</title>
   <link rel="stylesheet" href="./../style.css">
   <style>
     body {
@@ -31,22 +32,35 @@
     .setting-title { color: var(--text-primary); font-weight: 500; }
     .setting-desc { color: var(--text-secondary); font-size: 12px; }
     input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+    select { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; outline: none; }
   </style>
 </head>
 <body>
   <div class="settings-container">
-    <h1>Ajustes</h1>
+    <h1 id="txt-settings">Ajustes</h1>
     <div class="setting-item">
       <div class="setting-info">
-        <span class="setting-title">Recordar pestañas</span>
-        <span class="setting-desc">Restaurar las pestañas abiertas al iniciar el navegador.</span>
+        <span class="setting-title" id="txt-lang-title">Idioma</span>
+        <span class="setting-desc" id="txt-lang-desc">Selecciona el idioma de la interfaz.</span>
+      </div>
+      <select id="select-lang">
+        <option value="system">System Default</option>
+        <option value="en">English</option>
+        <option value="es">Castellano</option>
+        <option value="eu">Euskara</option>
+      </select>
+    </div>
+    <div class="setting-item">
+      <div class="setting-info">
+        <span class="setting-title" id="txt-remember-title">Recordar pestañas</span>
+        <span class="setting-desc" id="txt-remember-desc">Restaurar las pestañas abiertas al iniciar el navegador.</span>
       </div>
       <input type="checkbox" id="check-remember-tabs">
     </div>
     <div class="setting-item">
       <div class="setting-info">
-        <span class="setting-title">Confirmar al cerrar</span>
-        <span class="setting-desc">Preguntar si se desea guardar la sesión al salir.</span>
+        <span class="setting-title" id="txt-confirm-title">Confirmar al cerrar</span>
+        <span class="setting-desc" id="txt-confirm-desc">Preguntar si se desea guardar la sesión al salir.</span>
       </div>
       <input type="checkbox" id="check-confirm-close">
     </div>
@@ -54,22 +68,40 @@
   <script>
     const rememberCheck = document.getElementById('check-remember-tabs');
     const confirmCheck = document.getElementById('check-confirm-close');
+    const langSelect = document.getElementById('select-lang');
     
     // Cargar valores actuales
-    const settings = JSON.parse(localStorage.getItem('storm_settings') || '{"remember":false,"confirm":true}');
+    const settings = JSON.parse(localStorage.getItem('storm_settings') || '{"remember":false,"confirm":true,"language":"system"}');
     rememberCheck.checked = settings.remember;
     confirmCheck.checked = settings.confirm;
+    langSelect.value = settings.language || 'system';
+
+    // Aplicar traducciones
+    ipcRenderer.invoke('get-translations', settings.language).then(({ data }) => {
+      document.getElementById('page-title').textContent = data.settings + " - StormBrowser";
+      document.getElementById('txt-settings').textContent = data.settings;
+      document.getElementById('txt-lang-title').textContent = data.settings_language;
+      document.getElementById('txt-lang-desc').textContent = data.settings_language_desc;
+      document.getElementById('txt-remember-title').textContent = data.settings_remember_tabs;
+      document.getElementById('txt-remember-desc').textContent = data.settings_remember_tabs_desc;
+      document.getElementById('txt-confirm-title').textContent = data.settings_confirm_close;
+      document.getElementById('txt-confirm-desc').textContent = data.settings_confirm_close_desc;
+      langSelect.options[0].textContent = data.system_default;
+    });
 
     // Guardar cambios
     const save = () => {
       localStorage.setItem('storm_settings', JSON.stringify({
         remember: rememberCheck.checked,
-        confirm: confirmCheck.checked
+        confirm: confirmCheck.checked,
+        language: langSelect.value
       }));
+      if (confirm('Reabrir pestaña para aplicar cambios / Reopen tab to apply changes?')) location.reload();
     };
 
     rememberCheck.addEventListener('change', save);
     confirmCheck.addEventListener('change', save);
+    langSelect.addEventListener('change', save);
   </script>
 </body>
 </html>

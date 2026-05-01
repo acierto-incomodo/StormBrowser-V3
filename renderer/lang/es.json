@@ -11,5 +11,22 @@
   "save_and_close": "Guardar y cerrar",
   "just_close": "Solo cerrar",
   "cancel": "Cancelar",
-  "dont_ask_again": "No volver a preguntar"
+  "dont_ask_again": "No volver a preguntar",
+  "close_modal_title": "¿Cerrar StormBrowser?",
+  "close_modal_desc": "Tienes varias pestañas abiertas. ¿Quieres guardarlas para la próxima vez?",
+  "about_title": "Acerca de StormBrowser",
+  "version_text": "Versión",
+  "about_desc": "Un navegador moderno y oscuro construido con Electron y Chromium.",
+  "developed_by": "Desarrollado por StormGamesStudios.",
+  "settings_language": "Idioma",
+  "settings_language_desc": "Selecciona el idioma de la interfaz.",
+  "settings_remember_tabs": "Recordar pestañas",
+  "settings_remember_tabs_desc": "Restaurar las pestañas abiertas al iniciar el navegador.",
+  "settings_confirm_close": "Confirmar al cerrar",
+  "settings_confirm_close_desc": "Preguntar si se desea guardar la sesión al salir.",
+  "updating_title": "Actualizando StormBrowser",
+  "updating_status_preparing": "Preparando descarga...",
+  "updating_status_downloading": "Descargando nueva versión...",
+  "updating_status_ready": "¡Listo! Reiniciando para aplicar cambios...",
+  "system_default": "Predeterminado del sistema"
 }

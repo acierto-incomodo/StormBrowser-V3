@@ -60,10 +60,28 @@ ipcMain.on("window-maximize", () => {
 ipcMain.on("window-close", () => mainWindow?.close());
 ipcMain.handle("window-is-maximized", () => mainWindow?.isMaximized() ?? false);
 
+ipcMain.handle("get-app-version", () => app.getVersion());
+ipcMain.on("get-app-version-sync", (event) => {
+  event.returnValue = app.getVersion();
+});
+
+ipcMain.handle("get-translations", (event, langCode) => {
+  let targetLang = langCode;
+  if (!targetLang || targetLang === 'system') {
+    const sysLang = app.getLocale().split('-')[0];
+    targetLang = ['es', 'en', 'eu'].includes(sysLang) ? sysLang : 'en';
+  }
+  try {
+    const data = require(path.join(__dirname, `renderer/lang/${targetLang}.json`));
+    return { lang: targetLang, data };
+  } catch (e) {
+    return { lang: 'en', data: require(path.join(__dirname, 'renderer/lang/en.json')) };
+  }
+});
+
 // ─── Updater IPC ──────────────────────────────────────────────────────────────
 if (autoUpdater) {
   autoUpdater.on("update-available", () => {
-    mainWindow?.loadFile(path.join(__dirname, "renderer/update.html"));
     if (mainWindow) {
       if (mainWindow.isMaximized()) mainWindow.unmaximize();
       

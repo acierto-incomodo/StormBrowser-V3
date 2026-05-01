@@ -55,7 +55,6 @@ body {
 }
 
 /* ...excepto los elementos interactivos */
-#tab-bar,
 #tabs-container,
 .tab,
 .tab-close,
@@ -84,11 +83,22 @@ body {
   overflow-x: auto;
   overflow-y: hidden;
   flex: 1;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
 #tabs-container::-webkit-scrollbar {
-  display: none;
+  height: 3px;
+}
+
+#tabs-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#tabs-container::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+  transition: background 0.2s;
 }
 
 .tab {
@@ -226,6 +236,7 @@ body {
   transition:
     background 0.15s,
     color 0.15s;
+  margin-left: 12px;
 }
 
 #new-tab-btn:hover {

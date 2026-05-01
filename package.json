@@ -1,6 +1,6 @@
 {
   "name": "stormbrowser-v3",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "StormBrowser - A modern Electron browser by StormGamesStudios",
   "main": "main.js",
   "author": "StormGamesStudios <meliodas.aitor@gmail.com>",

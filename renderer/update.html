@@ -106,8 +106,8 @@
           </defs>
         </svg>
       </div>
-      <h1>Actualizando StormBrowser</h1>
-      <p id="status">Preparando descarga...</p>
+      <h1 id="txt-title">Actualizando StormBrowser</h1>
+      <p id="status">...</p>
 
       <div class="progress-container">
         <div class="progress-bar-bg">
@@ -126,18 +126,27 @@
       const fillEl = document.getElementById("progress-fill");
       const percentEl = document.getElementById("percent");
       const speedEl = document.getElementById("speed");
+      let i18n = {};
+
+      const settings = JSON.parse(localStorage.getItem('storm_settings') || '{}');
+      ipcRenderer.invoke('get-translations', settings.language).then(({ data }) => {
+        i18n = data;
+        document.title = i18n.updating_title;
+        document.getElementById('txt-title').textContent = i18n.updating_title;
+        statusEl.textContent = i18n.updating_status_preparing;
+      });
 
       ipcRenderer.on("download-progress", (event, progress) => {
         const percent = Math.floor(progress.percent);
         fillEl.style.width = percent + "%";
         percentEl.textContent = percent + "%";
-        statusEl.textContent = "Descargando nueva versión...";
+        statusEl.textContent = i18n.updating_status_downloading || "...";
         const mbps = (progress.bytesPerSecond / (1024 * 1024)).toFixed(2);
         speedEl.textContent = mbps + " MB/s";
       });
 
       ipcRenderer.on("update-downloaded", () => {
-        statusEl.textContent = "¡Listo! Reiniciando para aplicar cambios...";
+        statusEl.textContent = i18n.updating_status_ready || "Done!";
         fillEl.style.width = "100%";
         percentEl.textContent = "100%";
         setTimeout(() => {
