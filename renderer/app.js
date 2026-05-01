@@ -110,6 +110,7 @@ function renderTabEl(tab) {
   // Cierre con clic central (rueda del ratón)
   el.addEventListener("auxclick", (e) => {
     if (e.button === 1) {
+      e.preventDefault(); // Prevenir cualquier comportamiento por defecto del clic central
       closeTab(tab.id);
     }
   });
@@ -436,6 +437,23 @@ function handleExitSettings(willRemember) {
   }
 }
 
+async function loadShortcuts() {
+  const shortcuts = await ipcRenderer.invoke("get-shortcuts");
+  const container = document.getElementById("ntp-shortcuts");
+  if (!container) return;
+  container.innerHTML = "";
+  shortcuts.forEach(s => {
+    const el = document.createElement("div");
+    el.className = "shortcut";
+    el.innerHTML = `
+      <div class="shortcut-icon">${s.name.charAt(0).toUpperCase()}</div>
+      <span>${escHtml(s.name)}</span>
+    `;
+    el.addEventListener("click", () => navigate(s.url));
+    container.appendChild(el);
+  });
+}
+
 async function initI18n() {
   const settings = getSettings();
   const res = await ipcRenderer.invoke('get-translations', settings.language);
@@ -520,10 +538,6 @@ ntpSearch.addEventListener("keydown", (e) => {
 });
 ntpSearchBtn.addEventListener("click", ntpNavigate);
 
-document.querySelectorAll(".shortcut").forEach((el) => {
-  el.addEventListener("click", () => navigate(el.dataset.url));
-});
-
 // ─── Keyboard shortcuts ───────────────────────────────────────────────────────
 document.addEventListener("keydown", (e) => {
   const ctrl = e.ctrlKey || e.metaKey;
@@ -570,6 +584,7 @@ function escHtml(str) {
 const savedUrls = JSON.parse(localStorage.getItem("storm_session") || "[]");
 const settings = getSettings();
 initI18n();
+loadShortcuts();
 
 if (settings.remember && savedUrls.length > 0) {
   savedUrls.forEach((url) => createTab(url));

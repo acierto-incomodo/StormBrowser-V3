@@ -55,7 +55,6 @@ body {
 }
 
 /* ...excepto los elementos interactivos */
-#tabs-container,
 .tab,
 .tab-close,
 #new-tab-btn,
@@ -85,6 +84,7 @@ body {
   flex: 1;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
+  cursor: grab; /* Indica que esta área puede usarse para arrastrar la ventana */
 }
 
 #tabs-container::-webkit-scrollbar {
@@ -521,7 +521,9 @@ webview.active {
 
 #ntp-shortcuts {
   display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
 }
 
 .shortcut {

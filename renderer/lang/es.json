@@ -28,5 +28,6 @@
   "updating_status_preparing": "Preparando descarga...",
   "updating_status_downloading": "Descargando nueva versión...",
   "updating_status_ready": "¡Listo! Reiniciando para aplicar cambios...",
-  "system_default": "Predeterminado del sistema"
+  "system_default": "Predeterminado del sistema",
+  "shortcuts_title": "Accesos Directos (Máx 8)"
 }

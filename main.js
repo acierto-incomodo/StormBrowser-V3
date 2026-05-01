@@ -1,5 +1,6 @@
-const { app, BrowserWindow, ipcMain, session } = require("electron");
+const { app, BrowserWindow, ipcMain, session, shell } = require("electron");
 const path = require("path");
+const fs = require("fs");
 
 // electron-updater — only active in packaged builds
 let autoUpdater;
@@ -7,11 +8,38 @@ try {
   autoUpdater = require("electron-updater").autoUpdater;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.allowDowngrade = true;
 } catch (_) {
   // Not installed or running in dev without it
 }
 
 let mainWindow;
+
+// Ruta para el archivo de shortcuts externo
+const shortcutsPath = path.join(app.getPath("userData"), "shortcuts.json");
+
+function getShortcuts() {
+  if (!fs.existsSync(shortcutsPath)) {
+    const defaults = [
+      { name: "Google", url: "https://google.com" },
+      { name: "GitHub", url: "https://github.com" },
+      { name: "YouTube", url: "https://youtube.com" },
+      { name: "Reddit", url: "https://reddit.com" }
+    ];
+    fs.writeFileSync(shortcutsPath, JSON.stringify(defaults, null, 2));
+    return defaults;
+  }
+  try {
+    return JSON.parse(fs.readFileSync(shortcutsPath, "utf8"));
+  } catch (e) {
+    return [];
+  }
+}
+
+// ID de modelo de usuario para que Windows reconozca el icono en la barra de tareas
+if (process.platform === "win32") {
+  app.setAppUserModelId("com.stormgamesstudios.stormbrowser");
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -29,7 +57,7 @@ function createWindow() {
       webviewTag: true,
       sandbox: false,
     },
-    icon: path.join(__dirname, "renderer/assets/icon.png"),
+    icon: path.join(__dirname, process.platform === 'win32' ? "renderer/assets/icon.ico" : "renderer/assets/icon.png"),
     show: false,
   });
 
@@ -63,6 +91,15 @@ ipcMain.handle("window-is-maximized", () => mainWindow?.isMaximized() ?? false);
 ipcMain.handle("get-app-version", () => app.getVersion());
 ipcMain.on("get-app-version-sync", (event) => {
   event.returnValue = app.getVersion();
+});
+
+ipcMain.handle("get-shortcuts", () => getShortcuts());
+ipcMain.handle("save-shortcuts", (event, shortcuts) => {
+  if (Array.isArray(shortcuts) && shortcuts.length <= 8) {
+    fs.writeFileSync(shortcutsPath, JSON.stringify(shortcuts, null, 2));
+    return true;
+  }
+  return false;
 });
 
 ipcMain.handle("get-translations", (event, langCode) => {
