@@ -3,24 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Storm Browser</title>
+  <title>StormBrowser</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- Title bar + tabs -->
+  <!-- ── TITLEBAR ──────────────────────────────────────────────────────────── -->
   <div id="titlebar">
+
+    <!-- Tab bar — el propio #titlebar tiene -webkit-app-region:drag,
+         así que la zona vacía entre tabs y controles sirve para arrastrar -->
     <div id="tab-bar">
-      <div id="tabs-container"></div>
-      <button id="new-tab-btn" title="New tab">
+
+      <!-- Wrapper con botones de scroll y contenedor de tabs -->
+      <div id="tabs-scroll-wrapper">
+        <button class="tab-scroll-btn" id="tab-scroll-left" title="Scroll tabs left">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M6.5 2L3.5 5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div id="tabs-container"></div>
+        <button class="tab-scroll-btn" id="tab-scroll-right" title="Scroll tabs right">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M3.5 2L6.5 5l-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Botón nueva pestaña (siempre visible, zona no-drag) -->
+      <button id="new-tab-btn" title="New tab (Ctrl+T)">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
         </svg>
       </button>
-    </div>
 
+    </div><!-- /#tab-bar — aquí el padding-right de 8px deja hueco draggable al final -->
+
+    <!-- Controles de ventana -->
     <div id="window-controls">
       <button id="btn-min" title="Minimize">
         <svg width="10" height="2" viewBox="0 0 10 2"><rect width="10" height="1.5" rx="0.75" fill="currentColor"/></svg>
@@ -32,22 +53,23 @@
         <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       </button>
     </div>
+
   </div>
 
-  <!-- Navigation bar -->
+  <!-- ── NAVBAR ─────────────────────────────────────────────────────────────── -->
   <div id="navbar">
     <div id="nav-controls">
-      <button class="nav-btn" id="btn-back" title="Back" disabled>
+      <button class="nav-btn" id="btn-back" title="Back (Alt+←)" disabled>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <button class="nav-btn" id="btn-forward" title="Forward" disabled>
+      <button class="nav-btn" id="btn-forward" title="Forward (Alt+→)" disabled>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <button class="nav-btn" id="btn-reload" title="Reload">
+      <button class="nav-btn" id="btn-reload" title="Reload (Ctrl+R)">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.8 0 3.4.87 4.4 2.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           <path d="M12 2v3h-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -73,16 +95,22 @@
           <path d="M4 6.5V13h3v-3h2v3h3V6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+      <button class="nav-btn" id="btn-settings" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14M3.93 3.93l1.06 1.06M11.01 11.01l1.06 1.06M3.93 12.07l1.06-1.06M11.01 4.99l1.06-1.06" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </button>
     </div>
   </div>
 
-  <!-- Update banner -->
+  <!-- ── UPDATE BANNER ──────────────────────────────────────────────────────── -->
   <div id="update-banner" class="hidden"></div>
 
-  <!-- Webview container -->
+  <!-- ── WEBVIEW CONTAINER ──────────────────────────────────────────────────── -->
   <div id="webview-container"></div>
 
-  <!-- New tab page -->
+  <!-- ── NEW TAB PAGE ───────────────────────────────────────────────────────── -->
   <div id="new-tab-page" class="hidden">
     <div id="ntp-content">
       <div id="ntp-logo">
@@ -96,7 +124,7 @@
             </linearGradient>
           </defs>
         </svg>
-        <span>Storm Browser</span>
+        <span>StormBrowser</span>
       </div>
       <div id="ntp-search-wrapper">
         <input type="text" id="ntp-search" placeholder="Search the web or enter a URL..." autocomplete="off" />
@@ -109,33 +137,41 @@
       </div>
       <div id="ntp-shortcuts">
         <div class="shortcut" data-url="https://google.com">
-          <div class="shortcut-icon">G</div>
-          <span>Google</span>
+          <div class="shortcut-icon">G</div><span>Google</span>
         </div>
         <div class="shortcut" data-url="https://github.com">
           <div class="shortcut-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/>
             </svg>
-          </div>
-          <span>GitHub</span>
+          </div><span>GitHub</span>
         </div>
         <div class="shortcut" data-url="https://youtube.com">
           <div class="shortcut-icon" style="color:#ff4444;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
-          </div>
-          <span>YouTube</span>
+          </div><span>YouTube</span>
         </div>
         <div class="shortcut" data-url="https://reddit.com">
           <div class="shortcut-icon" style="color:#ff6314;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/>
             </svg>
-          </div>
-          <span>Reddit</span>
+          </div><span>Reddit</span>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CLOSE CONFIRM DIALOG ───────────────────────────────────────────────── -->
+  <div id="close-overlay" class="hidden">
+    <div class="dialog">
+      <div class="dialog-title">Close StormBrowser?</div>
+      <div class="dialog-body" id="close-dialog-msg">You have multiple tabs open. Are you sure you want to close?</div>
+      <div class="dialog-actions">
+        <button id="dialog-cancel">Cancel</button>
+        <button id="dialog-confirm" class="btn-danger">Close</button>
       </div>
     </div>
   </div>

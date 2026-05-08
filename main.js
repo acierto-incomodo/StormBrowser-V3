@@ -1,19 +1,36 @@
 const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
+const Store = require('electron-store');
 
-// electron-updater — only active in packaged builds
+const store = new Store();
+
 let autoUpdater;
 try {
   autoUpdater = require('electron-updater').autoUpdater;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
-} catch (_) {
-  // Not installed or running in dev without it
-}
+} catch (_) {}
 
 let mainWindow;
+let splashWindow;
 
-function createWindow() {
+// ─── Splash ───────────────────────────────────────────────────────────────────
+function createSplash() {
+  splashWindow = new BrowserWindow({
+    width: 380,
+    height: 280,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    center: true,
+    skipTaskbar: true,
+    webPreferences: { nodeIntegration: false, contextIsolation: true }
+  });
+  splashWindow.loadFile(path.join(__dirname, 'renderer/splash.html'));
+}
+
+// ─── Main window ──────────────────────────────────────────────────────────────
+function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -21,62 +38,72 @@ function createWindow() {
     minHeight: 600,
     frame: false,
     backgroundColor: '#0f0f13',
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      // nodeIntegration must be true so the renderer can use ipcRenderer directly
       nodeIntegration: true,
       contextIsolation: false,
       webviewTag: true,
       sandbox: false
     },
-    icon: path.join(__dirname, 'renderer/assets/icon.png'),
-    show: false
+    icon: path.join(__dirname, 'renderer/assets/icon.png')
   });
 
   mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-    // Check for updates once the window is visible (only in packaged app)
-    if (app.isPackaged && autoUpdater) {
-      autoUpdater.checkForUpdatesAndNotify();
+    // Check splash setting
+    const settings = store.get('settings', { splash: true, restoreTabs: false, closeWarn: true });
+
+    if (settings.splash && splashWindow) {
+      // Show splash for at least 1.6s
+      setTimeout(() => {
+        splashWindow?.close();
+        splashWindow = null;
+        mainWindow.show();
+        if (app.isPackaged && autoUpdater) autoUpdater.checkForUpdatesAndNotify();
+      }, 1600);
+    } else {
+      splashWindow?.close();
+      splashWindow = null;
+      mainWindow.show();
+      if (app.isPackaged && autoUpdater) autoUpdater.checkForUpdatesAndNotify();
     }
   });
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
+  // Close warning — handled in renderer, but also catch system close
+  mainWindow.on('close', (e) => {
+    // renderer sends 'confirm-close' after user confirms, so we just forward
   });
+
+  mainWindow.on('closed', () => { mainWindow = null; });
 }
 
-// ─── Window controls ──────────────────────────────────────────────────────────
+// ─── IPC: Window controls ─────────────────────────────────────────────────────
 ipcMain.on('window-minimize', () => mainWindow?.minimize());
 ipcMain.on('window-maximize', () => {
-  if (mainWindow?.isMaximized()) {
-    mainWindow.unmaximize();
-  } else {
-    mainWindow?.maximize();
-  }
+  mainWindow?.isMaximized() ? mainWindow.unmaximize() : mainWindow?.maximize();
 });
 ipcMain.on('window-close', () => mainWindow?.close());
 ipcMain.handle('window-is-maximized', () => mainWindow?.isMaximized() ?? false);
 
-// ─── Updater IPC ──────────────────────────────────────────────────────────────
-if (autoUpdater) {
-  autoUpdater.on('update-available', () => {
-    mainWindow?.webContents.send('update-available');
-  });
-  autoUpdater.on('update-downloaded', () => {
-    mainWindow?.webContents.send('update-downloaded');
-  });
-}
+// ─── IPC: Settings ────────────────────────────────────────────────────────────
+ipcMain.handle('get-settings', () => store.get('settings', { splash: true, restoreTabs: false, closeWarn: true }));
+ipcMain.on('save-settings', (_, settings) => store.set('settings', settings));
 
-ipcMain.on('install-update', () => {
-  autoUpdater?.quitAndInstall();
-});
+// ─── IPC: Saved tabs ─────────────────────────────────────────────────────────
+ipcMain.handle('get-saved-tabs', () => store.get('saved-tabs', []));
+ipcMain.on('save-tabs', (_, tabs) => store.set('saved-tabs', tabs));
+
+// ─── IPC: Updater ────────────────────────────────────────────────────────────
+if (autoUpdater) {
+  autoUpdater.on('update-available',  () => mainWindow?.webContents.send('update-available'));
+  autoUpdater.on('update-downloaded', () => mainWindow?.webContents.send('update-downloaded'));
+}
+ipcMain.on('install-update', () => autoUpdater?.quitAndInstall());
 
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
-  // Strip CSP headers so webviews can load any page freely
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const headers = { ...details.responseHeaders };
     delete headers['content-security-policy'];
@@ -84,7 +111,9 @@ app.whenReady().then(() => {
     callback({ responseHeaders: headers });
   });
 
-  createWindow();
+  const settings = store.get('settings', { splash: true });
+  if (settings.splash) createSplash();
+  createMainWindow();
 });
 
 app.on('window-all-closed', () => {
@@ -92,5 +121,5 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
 });

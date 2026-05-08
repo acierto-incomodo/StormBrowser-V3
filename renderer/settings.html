@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Settings — StormBrowser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-base:      #0f0f13;
+      --bg-surface:   #17171f;
+      --bg-elevated:  #1e1e2a;
+      --border:       #ffffff0f;
+      --border-focus: #6c8fff55;
+      --text-primary: #e8e8f0;
+      --text-secondary:#8888a8;
+      --text-muted:   #55556a;
+      --accent:       #6c8fff;
+      --accent-soft:  #6c8fff18;
+      --purple:       #a78bfa;
+      --green:        #4ade80;
+      --green-soft:   #4ade8018;
+    }
+
+    html, body {
+      height: 100%; background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 13px; -webkit-font-smoothing: antialiased;
+      overflow-y: auto;
+    }
+
+    body { display: flex; flex-direction: column; align-items: center; padding: 40px 24px 60px; gap: 28px; }
+
+    h1 {
+      font-size: 22px; font-weight: 300; letter-spacing: -0.5px;
+      color: var(--text-primary);
+      width: 100%; max-width: 560px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    h1 svg { color: var(--accent); }
+
+    /* Section */
+    .section { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 4px; }
+
+    .section-label {
+      font-size: 10.5px; text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--text-muted); font-weight: 500;
+      padding: 0 4px 8px;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    /* Setting row */
+    .setting-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row:hover { background: #ffffff04; }
+
+    .setting-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; color: var(--accent);
+    }
+
+    .setting-text { flex: 1; }
+    .setting-title { font-weight: 500; color: var(--text-primary); margin-bottom: 3px; }
+    .setting-desc  { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+    /* Toggle switch */
+    .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .toggle input:checked ~ .toggle-track {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .toggle-thumb {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: transform 0.2s, background 0.2s;
+      pointer-events: none;
+    }
+    .toggle input:checked ~ .toggle-track .toggle-thumb {
+      transform: translateX(18px);
+      background: #fff;
+    }
+
+    /* Save toast */
+    #save-toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px);
+      background: var(--bg-elevated); border: 1px solid var(--border-focus);
+      color: var(--accent); border-radius: 8px; padding: 10px 20px;
+      font-size: 13px; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #save-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Reset button */
+    .btn-reset {
+      margin-top: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 12.5px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-reset:hover { border-color: #ff6b6b55; color: #ff6b6b; }
+  </style>
+</head>
+<body>
+
+  <h1>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    Settings
+  </h1>
+
+  <!-- Startup -->
+  <div class="section">
+    <div class="section-label">Startup</div>
+    <div class="card">
+
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2v4l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+        </div>
+        <div class="setting-text">
+          <div class="setting-title">Show splash screen</div>
+          <div class="setting-desc">Display the StormBrowser loading screen on startup</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-splash" checked/>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="section">
+    <div class="section-label">Tabs</div>
+    <div class="card">
+
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="2" y="5" width="5" height="8" rx="1.2" stroke="currentColor" stroke-width="1.4"/>
+            <rect x="9" y="5" width="5" height="8" rx="1.2" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M2 3h5M9 3h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="setting-text">
+          <div class="setting-title">Restore tabs on startup</div>
+          <div class="setting-desc">Reopen your last session's tabs when StormBrowser starts</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-restore-tabs"/>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="setting-text">
+          <div class="setting-title">Warn before closing with multiple tabs</div>
+          <div class="setting-desc">Show a confirmation dialog when closing StormBrowser with more than one tab open</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-close-warn" checked/>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- About shortcut -->
+  <div class="section">
+    <div class="section-label">About</div>
+    <div class="card">
+      <div class="setting-row" id="open-info-row" style="cursor:pointer;">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M8 7v4M8 5.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="setting-text">
+          <div class="setting-title">About StormBrowser</div>
+          <div class="setting-desc">Version info, runtime details and credits</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="color:var(--text-muted)">
+          <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset -->
+  <div class="section">
+    <button class="btn-reset" id="btn-reset">Reset all settings to defaults</button>
+  </div>
+
+  <div id="save-toast">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <path d="M2 7l4 4 6-6" stroke="#6c8fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Settings saved
+  </div>
+
+  <script>
+    const DEFAULTS = {
+      splash: true,
+      restoreTabs: false,
+      closeWarn: true
+    };
+
+    function loadSettings() {
+      try {
+        return JSON.parse(localStorage.getItem('storm-settings') || 'null') || { ...DEFAULTS };
+      } catch { return { ...DEFAULTS }; }
+    }
+
+    function saveSettings(s) {
+      localStorage.setItem('storm-settings', JSON.stringify(s));
+      showToast();
+      // Notify main window if opened inside browser
+      try { window.opener?.dispatchEvent(new Event('settings-changed')); } catch {}
+    }
+
+    function showToast() {
+      const t = document.getElementById('save-toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    // Init
+    const s = loadSettings();
+    document.getElementById('toggle-splash').checked       = s.splash;
+    document.getElementById('toggle-restore-tabs').checked = s.restoreTabs;
+    document.getElementById('toggle-close-warn').checked   = s.closeWarn;
+
+    // Auto-save on change
+    function onChange() {
+      saveSettings({
+        splash:      document.getElementById('toggle-splash').checked,
+        restoreTabs: document.getElementById('toggle-restore-tabs').checked,
+        closeWarn:   document.getElementById('toggle-close-warn').checked
+      });
+    }
+
+    document.getElementById('toggle-splash').addEventListener('change', onChange);
+    document.getElementById('toggle-restore-tabs').addEventListener('change', onChange);
+    document.getElementById('toggle-close-warn').addEventListener('change', onChange);
+
+    // Open info page
+    document.getElementById('open-info-row').addEventListener('click', () => {
+      // If running inside Electron webview, post message to parent
+      try {
+        window.top.postMessage({ type: 'navigate', url: 'storm://info' }, '*');
+      } catch {
+        window.location.href = '../StormGamesStudios/info.html';
+      }
+    });
+
+    // Reset
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      if (confirm('Reset all settings to their defaults?')) {
+        localStorage.setItem('storm-settings', JSON.stringify({ ...DEFAULTS }));
+        location.reload();
+      }
+    });
+  </script>
+</body>
+</html>

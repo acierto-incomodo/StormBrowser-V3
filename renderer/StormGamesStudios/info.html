@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>About StormBrowser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-base:      #0f0f13;
+      --bg-surface:   #17171f;
+      --bg-elevated:  #1e1e2a;
+      --border:       #ffffff0f;
+      --border-focus: #6c8fff55;
+      --text-primary: #e8e8f0;
+      --text-secondary:#8888a8;
+      --text-muted:   #55556a;
+      --accent:       #6c8fff;
+      --accent-soft:  #6c8fff18;
+      --purple:       #a78bfa;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+      overflow-y: auto;
+    }
+
+    body { padding: 48px 0; display: flex; flex-direction: column; align-items: center; gap: 32px; }
+
+    /* Hero */
+    .hero {
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+      width: 100%; max-width: 560px;
+    }
+
+    .logo-ring {
+      position: relative; display: flex; align-items: center; justify-content: center;
+    }
+    .logo-ring::before {
+      content: '';
+      position: absolute;
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #6c8fff22 0%, transparent 70%);
+    }
+
+    .app-name {
+      font-size: 32px; font-weight: 300; letter-spacing: -1px;
+      background: linear-gradient(135deg, #e8e8f0 30%, var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .app-version {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-soft);
+      border: 1px solid var(--border-focus);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px; color: var(--accent); font-weight: 500;
+    }
+
+    .app-tagline {
+      font-size: 13px; color: var(--text-secondary); font-weight: 300;
+    }
+
+    /* Cards grid */
+    .cards { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 560px; }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+    }
+
+    .card-title {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text-muted); margin-bottom: 14px; font-weight: 500;
+    }
+
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .info-label { color: var(--text-secondary); }
+    .info-value { color: var(--text-primary); font-weight: 500; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+    .info-value.accent { color: var(--accent); }
+
+    /* Tech badges */
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+    .badge {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .badge.highlight { border-color: var(--border-focus); color: var(--accent); }
+
+    /* Made by */
+    .made-by-card {
+      display: flex; align-items: center; gap: 16px;
+      background: linear-gradient(135deg, #17171f, #1a1a28);
+      border: 1px solid var(--border-focus);
+      border-radius: 12px;
+      padding: 20px 24px;
+      width: 100%; max-width: 560px;
+    }
+
+    .made-by-card svg { flex-shrink: 0; }
+
+    .made-by-text { flex: 1; }
+    .made-by-text strong { display: block; color: var(--text-primary); font-weight: 500; margin-bottom: 3px; }
+    .made-by-text span { color: var(--text-muted); font-size: 12px; }
+
+    footer {
+      font-size: 11px; color: var(--text-muted);
+      padding-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="logo-ring">
+      <svg width="80" height="80" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" stroke="url(#g1)" stroke-width="2"/>
+        <path d="M24 8 L38 38 L24 32 L10 38 Z" fill="url(#g1)" opacity="0.95"/>
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#6c8fff"/>
+            <stop offset="100%" stop-color="#a78bfa"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="app-name">StormBrowser</div>
+    <div class="app-version" id="version-badge">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <circle cx="5" cy="5" r="4" stroke="#6c8fff" stroke-width="1.2"/>
+        <path d="M5 3v2l1.5 1" stroke="#6c8fff" stroke-width="1.1" stroke-linecap="round"/>
+      </svg>
+      <span id="version-text">v1.0.0</span>
+    </div>
+    <div class="app-tagline">A fast, modern browser built on Electron + Chromium</div>
+  </div>
+
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-title">Application Info</div>
+      <div class="info-row">
+        <span class="info-label">Application</span>
+        <span class="info-value accent">StormBrowser</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Version</span>
+        <span class="info-value" id="app-version">1.0.0</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Developer</span>
+        <span class="info-value accent">StormGamesStudios</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Platform</span>
+        <span class="info-value" id="platform">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Architecture</span>
+        <span class="info-value" id="arch">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Runtime Info</div>
+      <div class="info-row">
+        <span class="info-label">Electron</span>
+        <span class="info-value" id="electron-ver">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Chromium</span>
+        <span class="info-value" id="chrome-ver">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Node.js</span>
+        <span class="info-value" id="node-ver">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">V8</span>
+        <span class="info-value" id="v8-ver">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Built With</div>
+      <div class="badges">
+        <span class="badge highlight">Electron</span>
+        <span class="badge highlight">Chromium</span>
+        <span class="badge">HTML / CSS / JS</span>
+        <span class="badge">electron-builder</span>
+        <span class="badge">electron-updater</span>
+        <span class="badge">Node.js</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="made-by-card">
+    <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" stroke="url(#g2)" stroke-width="2"/>
+      <path d="M24 8 L38 38 L24 32 L10 38 Z" fill="url(#g2)" opacity="0.9"/>
+      <defs>
+        <linearGradient id="g2" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#6c8fff"/>
+          <stop offset="100%" stop-color="#a78bfa"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="made-by-text">
+      <strong>StormGamesStudios</strong>
+      <span>Independent developer studio — games, tools &amp; apps</span>
+    </div>
+  </div>
+
+  <footer>StormBrowser © 2025 StormGamesStudios — All rights reserved</footer>
+
+  <script>
+    // Fill in runtime versions via process object (available with nodeIntegration: true)
+    try {
+      document.getElementById('platform').textContent    = process.platform;
+      document.getElementById('arch').textContent        = process.arch;
+      document.getElementById('electron-ver').textContent = process.versions.electron || '—';
+      document.getElementById('chrome-ver').textContent  = process.versions.chrome    || '—';
+      document.getElementById('node-ver').textContent    = process.versions.node      || '—';
+      document.getElementById('v8-ver').textContent      = process.versions.v8        || '—';
+
+      // Try to get app version from package.json
+      const pkg = require('../../package.json');
+      document.getElementById('app-version').textContent  = pkg.version;
+      document.getElementById('version-text').textContent = 'v' + pkg.version;
+    } catch(e) {
+      // fallback — running outside Electron
+    }
+  </script>
+</body>
+</html>
