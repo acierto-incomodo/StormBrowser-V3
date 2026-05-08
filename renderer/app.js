@@ -109,6 +109,8 @@ window.addEventListener('message', (e) => {
   } else if (e.data?.type === 'navigate') {
     // Handle navigation requests from internal pages
     navigate(e.data.url);
+  } else if (e.data?.type === 'close-all-tabs') {
+    closeAllTabs();
   }
 });
 
@@ -289,12 +291,23 @@ function closeTab(id) {
   setTimeout(updateScrollButtons, 50);
 }
 
+function closeAllTabs() {
+  tabs.forEach(t => { if (t.webview) t.webview.remove(); });
+  tabsContainer.innerHTML = '';
+  tabs = [];
+  activeTabId = null;
+  tabCounter = 0;
+
+  createTab();
+  setTimeout(updateScrollButtons, 50);
+}
+
 function getTab(id)     { return tabs.find(t => t.id === id); }
 function getActiveTab() { return getTab(activeTabId); }
 
 function saveTabs() {
   if (!settings.restoreTabs) return;
-  const urls = tabs.map(t => t.url).filter(u => u !== HOME_URL);
+  const urls = tabs.map(t => t.url); // Guardar todas las URLs, incluyendo HOME_URL
   ipcRenderer.send('save-tabs', urls);
 }
 

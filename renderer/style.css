@@ -42,8 +42,7 @@ html, body {
 }
 
 /* Todos los interactivos cancelan drag */
-#tab-bar, #tabs-container, .tab, .tab-close,
-#new-tab-btn, #window-controls, #window-controls button {
+.tab, .tab-close, #new-tab-btn, #window-controls button {
   -webkit-app-region: no-drag;
 }
 
@@ -67,7 +66,7 @@ html, body {
   height: 100%;
   flex: 1;
   min-width: 0;
-  -webkit-app-region: no-drag;
+  -webkit-app-region: drag;
 }
 
 /* Flechas de scroll */
@@ -90,10 +89,10 @@ html, body {
   gap: 2px; height: 100%;
   overflow-x: auto; overflow-y: hidden;
   flex: 1; min-width: 0;
+  -webkit-app-region: drag;
   /* Scrollbar oculta pero funcional con mouse/touchpad */
   scrollbar-width: none;
   scroll-behavior: smooth;
-  -webkit-app-region: no-drag;
 }
 #tabs-container::-webkit-scrollbar { display: none; }
 
@@ -172,7 +171,6 @@ html, body {
 #window-controls {
   display: flex; align-items: center; gap: 4px;
   padding: 0 10px; flex-shrink: 0;
-  -webkit-app-region: no-drag;
 }
 #window-controls button {
   width: 28px; height: 28px; border: none; border-radius: var(--radius-sm);
