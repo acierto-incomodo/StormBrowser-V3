@@ -53,6 +53,7 @@ Output goes to the `dist/` folder.
 - Multi-tab with dynamic open/close
 - New tab page with search + shortcuts
 - URL bar with smart navigation (auto-adds https://, detects searches)
+- Ad Block: Built-in ad and tracker blocking powered by Ghostery
 - Lock icon: green = HTTPS, red = HTTP
 - Loading spinner + stop button while page loads
 - Frameless window with custom title bar

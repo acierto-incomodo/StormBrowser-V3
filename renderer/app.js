@@ -19,6 +19,7 @@ let settings = {
   closeWarn: true,
   language: "auto",
   startMaximized: false,
+  adBlock: true,
 };
 let i18n = {};
 
@@ -37,6 +38,7 @@ const btnBack = document.getElementById("btn-back");
 const btnForward = document.getElementById("btn-forward");
 const btnReload = document.getElementById("btn-reload");
 const btnHome = document.getElementById("btn-home");
+const btnAdBlock = document.getElementById("btn-adblock");
 const btnSettings = document.getElementById("btn-settings");
 const ntpSearch = document.getElementById("ntp-search");
 const ntpSearchBtn = document.getElementById("ntp-search-btn");
@@ -122,6 +124,7 @@ window.addEventListener("message", (e) => {
     const langChanged = settings.language !== e.data.settings.language;
     ipcRenderer.send("save-settings", e.data.settings);
     settings = e.data.settings;
+    updateAdBlockUI();
     if (langChanged) location.reload();
   } else if (e.data?.type === "settings-changed") {
     ipcRenderer.invoke("get-settings").then((s) => {
@@ -526,6 +529,22 @@ function navigate(url) {
   updateLockIcon(finalUrl);
 }
 
+function updateAdBlockUI() {
+  if (!btnAdBlock) return;
+  btnAdBlock.classList.toggle("active", !!settings.adBlock);
+  if (i18n.ad_block) btnAdBlock.setAttribute("title", i18n.ad_block);
+}
+
+function toggleAdBlock() {
+  settings.adBlock = !settings.adBlock;
+  ipcRenderer.send("save-settings", settings);
+  updateAdBlockUI();
+  const settingsIframe = document.getElementById("settings-page");
+  if (settingsIframe) {
+    settingsIframe.contentWindow.postMessage({ type: "settings-changed" }, "*");
+  }
+}
+
 function updateNavButtons(tab) {
   btnBack.disabled = !tab?.canGoBack;
   btnForward.disabled = !tab?.canGoForward;
@@ -585,6 +604,7 @@ btnReload.addEventListener("click", () => {
   tab.loading ? tab.webview.stop() : tab.webview.reload();
 });
 btnHome.addEventListener("click", () => navigate(HOME_URL));
+btnAdBlock.addEventListener("click", () => toggleAdBlock());
 btnSettings.addEventListener("click", () => navigate(SETTINGS_URL));
 
 urlBar.addEventListener("keydown", (e) => {
@@ -754,6 +774,7 @@ function applyTranslations() {
   document
     .getElementById("new-tab-btn")
     ?.setAttribute("title", (i18n.new_tab || "New tab") + " (Ctrl+T)");
+  updateAdBlockUI();
 
   const dCancel = document.getElementById("dialog-cancel");
   const dConfirm = document.getElementById("dialog-confirm");

@@ -336,6 +336,10 @@ body {
   background: var(--bg-hover);
   color: var(--text-primary);
 }
+.nav-btn.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
 .nav-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;

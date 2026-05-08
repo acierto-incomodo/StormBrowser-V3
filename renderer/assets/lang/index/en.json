@@ -12,6 +12,7 @@
   "minimize": "Minimize",
   "maximize": "Maximize",
   "home": "Home",
+  "ad_block": "Ad Block",
   "update_available": "New version {version} available. Current: {current}",
   "update_downloading": "Downloading: {percent}% ({transferred}/{total}) @ {speed} — {time} left",
   "update_ready": "Version {version} ready",

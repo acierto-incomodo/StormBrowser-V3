@@ -445,6 +445,32 @@
       </div>
     </div>
 
+    <!-- Privacy -->
+    <div class="section">
+      <div class="section-label" data-i18n="privacy">Privacy</div>
+      <div class="card">
+        <div class="setting-row">
+          <div class="setting-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2l5 2v5c0 3.5-2.5 6-5 7-2.5-1-5-3.5-5-7V4l5-2z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="setting-text">
+            <div class="setting-title" data-i18n="ad_block">
+              Ad Block
+            </div>
+            <div class="setting-desc" data-i18n="ad_block_desc">
+              Block intrusive ads and trackers for a cleaner experience
+            </div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-adblock" checked />
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </label>
+        </div>
+      </div>
+    </div>
+
     <!-- General / Language -->
     <div class="section">
       <div class="section-label" data-i18n="general">General</div>
@@ -633,6 +659,7 @@
         splash: true,
         restoreTabs: false,
         closeWarn: true,
+        adBlock: true,
         language: "auto",
       };
 
@@ -670,6 +697,7 @@
       document.getElementById("toggle-restore-tabs").checked = s.restoreTabs;
       document.getElementById("toggle-close-warn").checked = s.closeWarn;
       document.getElementById("toggle-maximized").checked = !!s.startMaximized;
+      document.getElementById("toggle-adblock").checked = !!s.adBlock;
 
       (async () => {
         await loadLocale();
@@ -684,6 +712,7 @@
           closeWarn: document.getElementById("toggle-close-warn").checked,
           language: document.getElementById("select-lang").value,
           startMaximized: document.getElementById("toggle-maximized").checked,
+          adBlock: document.getElementById("toggle-adblock").checked,
         });
       }
 
@@ -702,6 +731,20 @@
       document
         .getElementById("toggle-maximized")
         .addEventListener("change", onChange);
+      document
+        .getElementById("toggle-adblock")
+        .addEventListener("change", onChange);
+
+      window.addEventListener("message", async (e) => {
+        if (e.data?.type === "settings-changed") {
+          const s = await ipcRenderer.invoke("get-settings");
+          localStorage.setItem("storm-settings", JSON.stringify(s));
+          document.getElementById("toggle-adblock").checked = !!s.adBlock;
+          document.getElementById("toggle-splash").checked = !!s.splash;
+          document.getElementById("toggle-restore-tabs").checked = !!s.restoreTabs;
+          document.getElementById("toggle-close-warn").checked = !!s.closeWarn;
+        }
+      });
 
       // Open info page
       document.getElementById("open-info-row").addEventListener("click", () => {

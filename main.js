@@ -3,6 +3,8 @@ const path = require("path");
 const fs = require("fs");
 const Store = require("electron-store").default;
 
+const { ElectronBlocker } = require("@ghostery/adblocker-electron");
+
 const store = new Store();
 
 let autoUpdater;
@@ -14,6 +16,25 @@ try {
 
 let mainWindow;
 let splashWindow;
+let blocker;
+
+// ─── AdBlocker ────────────────────────────────────────────────────────────────
+async function updateAdBlocker() {
+  const settings = store.get("settings", { adBlock: true });
+  if (settings.adBlock) {
+    if (!blocker) {
+      // Requiere fetch global (disponible en Node 18+ / Electron reciente)
+      blocker = await ElectronBlocker.fromPrebuiltAdsAndTracking(fetch);
+    }
+    if (session.defaultSession) {
+      blocker.enableBlockingInSession(session.defaultSession);
+    }
+  } else {
+    if (blocker && session.defaultSession) {
+      blocker.disableBlockingInSession(session.defaultSession);
+    }
+  }
+}
 
 // ─── Splash ───────────────────────────────────────────────────────────────────
 function createSplash() {
@@ -108,9 +129,16 @@ ipcMain.handle("get-settings", () =>
     closeWarn: true,
     language: "auto",
     startMaximized: false,
+    adBlock: true,
   }),
 );
-ipcMain.on("save-settings", (_, settings) => store.set("settings", settings));
+ipcMain.on("save-settings", (_, settings) => {
+  const old = store.get("settings");
+  store.set("settings", settings);
+  if (old?.adBlock !== settings.adBlock) {
+    updateAdBlocker();
+  }
+});
 ipcMain.handle("get-app-locale", () => app.getLocale());
 
 ipcMain.handle("list-locales", () => {
@@ -145,6 +173,7 @@ ipcMain.on("install-update", () => autoUpdater?.quitAndInstall());
 
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
+  updateAdBlocker();
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const headers = { ...details.responseHeaders };
     delete headers["content-security-policy"];
