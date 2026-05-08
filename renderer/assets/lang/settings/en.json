@@ -3,6 +3,8 @@
   "startup": "Startup",
   "show_splash": "Show splash screen",
   "show_splash_desc": "Display the StormBrowser loading screen on startup",
+  "start_maximized": "Start maximized",
+  "start_maximized_desc": "Open StormBrowser in full screen by default",
   "tabs": "Tabs",
   "restore_tabs": "Restore tabs on startup",
   "restore_tabs_desc": "Reopen your last session's tabs when StormBrowser starts",

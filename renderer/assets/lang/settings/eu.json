@@ -3,6 +3,8 @@
   "startup": "Hasiera",
   "show_splash": "Karga-pantaila erakutsi",
   "show_splash_desc": "StormBrowser-en karga-pantaila erakusten du abiaraztean",
+  "start_maximized": "Maximizatuta abiarazi",
+  "start_maximized_desc": "StormBrowser pantaila osoan ireki modu lehenetsian",
   "tabs": "Fitxak",
   "restore_tabs": "Fitxak berreskuratu abiaraztean",
   "restore_tabs_desc": "Azken saioaren fitxak irekitzen ditu berriro StormBrowser abiaraztean",

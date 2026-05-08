@@ -3,6 +3,8 @@
   "startup": "Inicio",
   "show_splash": "Mostrar pantalla de carga",
   "show_splash_desc": "Muestra la pantalla de carga de StormBrowser al iniciar",
+  "start_maximized": "Iniciar maximizado",
+  "start_maximized_desc": "Abre StormBrowser en pantalla completa por defecto",
   "tabs": "Pestañas",
   "restore_tabs": "Restaurar pestañas al iniciar",
   "restore_tabs_desc": "Vuelve a abrir las pestañas de tu última sesión al iniciar StormBrowser",

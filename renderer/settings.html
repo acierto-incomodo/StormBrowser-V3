@@ -177,6 +177,23 @@
         </label>
       </div>
 
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M2 5h12" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+        </div>
+        <div class="setting-text">
+          <div class="setting-title" data-i18n="start_maximized">Start maximized</div>
+          <div class="setting-desc" data-i18n="start_maximized_desc">Open StormBrowser in full screen by default</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-maximized"/>
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        </label>
+      </div>
+
     </div>
   </div>
 
@@ -384,6 +401,7 @@
     document.getElementById('toggle-splash').checked       = s.splash;
     document.getElementById('toggle-restore-tabs').checked = s.restoreTabs;
     document.getElementById('toggle-close-warn').checked   = s.closeWarn;
+    document.getElementById('toggle-maximized').checked    = !!s.startMaximized;
 
     (async () => {
       await loadLocale();
@@ -396,7 +414,8 @@
         splash:      document.getElementById('toggle-splash').checked,
         restoreTabs: document.getElementById('toggle-restore-tabs').checked,
         closeWarn:   document.getElementById('toggle-close-warn').checked,
-        language:    document.getElementById('select-lang').value
+        language:    document.getElementById('select-lang').value,
+        startMaximized: document.getElementById('toggle-maximized').checked
       });
     }
 
@@ -404,6 +423,7 @@
     document.getElementById('toggle-restore-tabs').addEventListener('change', onChange);
     document.getElementById('toggle-close-warn').addEventListener('change', onChange);
     document.getElementById('select-lang').addEventListener('change', onChange);
+    document.getElementById('toggle-maximized').addEventListener('change', onChange);
 
     // Open info page
     document.getElementById('open-info-row').addEventListener('click', () => {
@@ -417,9 +437,7 @@
 
     // Close all tabs
     document.getElementById('row-close-all').addEventListener('click', () => {
-      if (confirm(i18n.confirm_close_all || 'Are you sure you want to close all tabs?')) {
-        window.parent.postMessage({ type: 'close-all-tabs' }, '*');
-      }
+      window.parent.postMessage({ type: 'close-all-tabs' }, '*');
     });
 
     // Reset

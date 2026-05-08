@@ -12,12 +12,13 @@ const SEARCH_ENGINE = 'https://www.google.com/search?q=';
 let tabs        = [];
 let activeTabId = null;
 let tabCounter  = 0;
-let settings    = { splash: true, restoreTabs: false, closeWarn: true, language: 'auto' };
+let settings    = { splash: true, restoreTabs: false, closeWarn: true, language: 'auto', startMaximized: false };
 let i18n        = {};
 
 // ─── DOM ──────────────────────────────────────────────────────────────────────
 const tabsContainer   = document.getElementById('tabs-container');
 const tabScrollLeft   = document.getElementById('tab-scroll-left');
+const closeOverlayTitle = document.querySelector('.dialog-title');
 const tabScrollRight  = document.getElementById('tab-scroll-right');
 const webviewContainer= document.getElementById('webview-container');
 const newTabPage      = document.getElementById('new-tab-page');
@@ -36,6 +37,8 @@ const closeOverlay    = document.getElementById('close-overlay');
 const closeDialogMsg  = document.getElementById('close-dialog-msg');
 const dialogCancel    = document.getElementById('dialog-cancel');
 const dialogConfirm   = document.getElementById('dialog-confirm');
+
+let dialogAction = null; // Para saber qué hacer al confirmar el diálogo
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
@@ -63,32 +66,28 @@ document.getElementById('btn-close').addEventListener('click', () => requestClos
 
 // ─── Close confirmation ───────────────────────────────────────────────────────
 function requestClose() {
-  if (!settings.closeWarn) { ipcRenderer.send('window-close'); return; }
+  if (!settings.closeWarn && tabs.length <= 1) { ipcRenderer.send('window-close'); return; }
 
   const nonHome = tabs.filter(t => t.url !== HOME_URL);
   const multi   = tabs.length > 1;
   const single  = tabs.length === 1 && nonHome.length === 1;
 
-  const dialogTitle = document.querySelector('.dialog-title');
-  if (dialogTitle) dialogTitle.textContent = i18n.confirm_close_title || 'Close StormBrowser?';
-
   if (multi) {
-    closeDialogMsg.textContent = (i18n.confirm_close_multi || 'You have {n} tabs open.').replace('{n}', tabs.length);
-    showCloseDialog();
+    showCustomDialog(
+      i18n.confirm_close_title || 'Close StormBrowser?',
+      (i18n.confirm_close_multi || 'You have {n} tabs open.').replace('{n}', tabs.length),
+      () => ipcRenderer.send('window-close')
+    );
   } else if (single) {
-    closeDialogMsg.textContent = i18n.confirm_close_msg || 'Close?';
-    showCloseDialog();
+    showCustomDialog(
+      i18n.confirm_close_title || 'Close StormBrowser?',
+      i18n.confirm_close_msg || 'Are you sure you want to close?',
+      () => ipcRenderer.send('window-close')
+    );
   } else {
     ipcRenderer.send('window-close');
   }
 }
-
-function showCloseDialog() { closeOverlay.classList.remove('hidden'); }
-function hideCloseDialog() { closeOverlay.classList.add('hidden'); }
-
-dialogCancel.addEventListener('click',  hideCloseDialog);
-dialogConfirm.addEventListener('click', () => { hideCloseDialog(); ipcRenderer.send('window-close'); });
-closeOverlay.addEventListener('click', (e) => { if (e.target === closeOverlay) hideCloseDialog(); });
 
 // ─── Settings sync ────────────────────────────────────────────────────────────
 // Listen for settings changes dispatched from settings page
@@ -110,7 +109,11 @@ window.addEventListener('message', (e) => {
     // Handle navigation requests from internal pages
     navigate(e.data.url);
   } else if (e.data?.type === 'close-all-tabs') {
-    closeAllTabs();
+    showCustomDialog(
+      i18n.close_all_tabs || 'Close all tabs',
+      i18n.confirm_close_all || 'Are you sure you want to close all tabs?',
+      () => closeAllTabs()
+    );
   }
 });
 
@@ -301,6 +304,22 @@ function closeAllTabs() {
   createTab();
   setTimeout(updateScrollButtons, 50);
 }
+
+function showCustomDialog(title, msg, onConfirm) {
+  if (closeOverlayTitle) closeOverlayTitle.textContent = title;
+  closeDialogMsg.textContent = msg;
+  dialogAction = onConfirm;
+  closeOverlay.classList.remove('hidden');
+}
+
+function hideCloseDialog() { 
+  closeOverlay.classList.add('hidden');
+  dialogAction = null;
+}
+
+dialogCancel.addEventListener('click', hideCloseDialog);
+dialogConfirm.addEventListener('click', () => { if (dialogAction) dialogAction(); hideCloseDialog(); });
+closeOverlay.addEventListener('click', (e) => { if (e.target === closeOverlay) hideCloseDialog(); });
 
 function getTab(id)     { return tabs.find(t => t.id === id); }
 function getActiveTab() { return getTab(activeTabId); }

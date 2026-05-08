@@ -55,7 +55,7 @@ function createMainWindow() {
 
   mainWindow.once('ready-to-show', () => {
     // Check splash setting
-    const settings = store.get('settings', { splash: true, restoreTabs: false, closeWarn: true, language: 'auto' });
+    const settings = store.get('settings', { splash: true, restoreTabs: false, closeWarn: true, language: 'auto', startMaximized: false });
 
     if (settings.splash && splashWindow) {
       // Show splash for at least 1.6s
@@ -63,12 +63,14 @@ function createMainWindow() {
         splashWindow?.close();
         splashWindow = null;
         mainWindow.show();
+        if (settings.startMaximized) mainWindow.maximize();
         if (app.isPackaged && autoUpdater) autoUpdater.checkForUpdatesAndNotify();
       }, 1600);
     } else {
       splashWindow?.close();
       splashWindow = null;
       mainWindow.show();
+      if (settings.startMaximized) mainWindow.maximize();
       if (app.isPackaged && autoUpdater) autoUpdater.checkForUpdatesAndNotify();
     }
   });
@@ -90,7 +92,7 @@ ipcMain.on('window-close', () => mainWindow?.close());
 ipcMain.handle('window-is-maximized', () => mainWindow?.isMaximized() ?? false);
 
 // ─── IPC: Settings ────────────────────────────────────────────────────────────
-ipcMain.handle('get-settings', () => store.get('settings', { splash: true, restoreTabs: false, closeWarn: true, language: 'auto' }));
+ipcMain.handle('get-settings', () => store.get('settings', { splash: true, restoreTabs: false, closeWarn: true, language: 'auto', startMaximized: false }));
 ipcMain.on('save-settings', (_, settings) => store.set('settings', settings));
 ipcMain.handle('get-app-locale', () => app.getLocale());
 
