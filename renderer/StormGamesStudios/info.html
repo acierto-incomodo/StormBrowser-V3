@@ -155,37 +155,37 @@
       </svg>
       <span id="version-text">v1.0.0</span>
     </div>
-    <div class="app-tagline">A fast, modern browser built on Electron + Chromium</div>
+    <div class="app-tagline" data-i18n="app_tagline">A fast, modern browser built on Electron + Chromium</div>
   </div>
 
   <div class="cards">
 
     <div class="card">
-      <div class="card-title">Application Info</div>
+      <div class="card-title" data-i18n="app_info">Application Info</div>
       <div class="info-row">
-        <span class="info-label">Application</span>
+        <span class="info-label" data-i18n="application">Application</span>
         <span class="info-value accent">StormBrowser</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Version</span>
+        <span class="info-label" data-i18n="version">Version</span>
         <span class="info-value" id="app-version">1.0.0</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Developer</span>
+        <span class="info-label" data-i18n="developer">Developer</span>
         <span class="info-value accent">StormGamesStudios</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Platform</span>
+        <span class="info-label" data-i18n="platform">Platform</span>
         <span class="info-value" id="platform">—</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Architecture</span>
+        <span class="info-label" data-i18n="architecture">Architecture</span>
         <span class="info-value" id="arch">—</span>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Runtime Info</div>
+      <div class="card-title" data-i18n="runtime_info">Runtime Info</div>
       <div class="info-row">
         <span class="info-label">Electron</span>
         <span class="info-value" id="electron-ver">—</span>
@@ -205,7 +205,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Built With</div>
+      <div class="card-title" data-i18n="built_with">Built With</div>
       <div class="badges">
         <span class="badge highlight">Electron</span>
         <span class="badge highlight">Chromium</span>
@@ -231,15 +231,48 @@
     </svg>
     <div class="made-by-text">
       <strong>StormGamesStudios</strong>
-      <span>Independent developer studio — games, tools &amp; apps</span>
+      <span data-i18n="studio_desc">Independent developer studio — games, tools &amp; apps</span>
     </div>
   </div>
 
-  <footer>StormBrowser © 2025 StormGamesStudios — All rights reserved</footer>
+  <footer data-i18n="footer">StormBrowser © 2025 StormGamesStudios — All rights reserved</footer>
 
   <script>
+    const { ipcRenderer } = require('electron');
+    const fs = require('fs');
+    const path = require('path');
+
+    // ─── Localization ─────────────────────────────────────────────────────────
+    async function loadLocale() {
+      let settings = { language: 'auto' };
+      try {
+        settings = JSON.parse(localStorage.getItem('storm-settings')) || settings;
+      } catch(e) {}
+
+      let lang = settings.language;
+      if (!lang || lang === 'auto') {
+        const sys = await ipcRenderer.invoke('get-app-locale');
+        lang = sys.startsWith('es') ? 'es' : sys.startsWith('eu') ? 'eu' : 'en';
+      }
+
+      try {
+        // Nota: Al estar en renderer/StormGamesStudios/, necesitamos subir un nivel para llegar a assets/
+        const langPath = path.join(__dirname, '..', 'assets', 'lang', 'info', `${lang}.json`);
+        const i18n = JSON.parse(fs.readFileSync(langPath, 'utf8'));
+        
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          if (i18n[key]) el.textContent = i18n[key];
+        });
+      } catch (e) {
+        console.error('Info locale error:', e);
+      }
+    }
+
     // Fill in runtime versions via process object (available with nodeIntegration: true)
     try {
+      loadLocale();
+
       document.getElementById('platform').textContent    = process.platform;
       document.getElementById('arch').textContent        = process.arch;
       document.getElementById('electron-ver').textContent = process.versions.electron || '—';

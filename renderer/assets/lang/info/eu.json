@@ -1,0 +1,13 @@
+{
+  "app_tagline": "Electron + Chromium-ekin eraikitako nabigatzaile azkar eta modernoa",
+  "app_info": "Aplikazioaren Informazioa",
+  "application": "Aplikazioa",
+  "version": "Bertsioa",
+  "developer": "Garatzailea",
+  "platform": "Plataforma",
+  "architecture": "Arkitektura",
+  "runtime_info": "Exekuzio Informazioa",
+  "built_with": "Honekin eraikia",
+  "studio_desc": "Garatzaile estudio independentea — jokoak, tresnak eta aplikazioak",
+  "footer": "StormBrowser © 2025 StormGamesStudios — Eskubide guztiak erreserbatuta"
+}

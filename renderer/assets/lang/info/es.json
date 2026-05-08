@@ -1,0 +1,13 @@
+{
+  "app_tagline": "Un navegador rápido y moderno construido con Electron + Chromium",
+  "app_info": "Información de la Aplicación",
+  "application": "Aplicación",
+  "version": "Versión",
+  "developer": "Desarrollador",
+  "platform": "Plataforma",
+  "architecture": "Arquitectura",
+  "runtime_info": "Información de Ejecución",
+  "built_with": "Construido con",
+  "studio_desc": "Estudio de desarrollo independiente — juegos, herramientas y aplicaciones",
+  "footer": "StormBrowser © 2025 StormGamesStudios — Todos los derechos reservados"
+}

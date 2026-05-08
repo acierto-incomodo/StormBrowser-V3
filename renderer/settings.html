@@ -284,12 +284,23 @@
     async function populateLocales() {
       const select = document.getElementById('select-lang');
       const locales = await ipcRenderer.invoke('list-locales');
+      const autoLabel = i18n.lang_auto || 'Automatic';
       
-      // Mantener 'auto' y añadir los detectados
-      select.innerHTML = '<option value="auto">Automatic</option>';
+      select.innerHTML = `<option value="auto">${autoLabel}</option>`;
+
       locales.forEach(l => {
-        const name = l === 'en' ? 'English' : l === 'es' ? 'Español' : l === 'eu' ? 'Euskara' : l.toUpperCase();
-        select.innerHTML += `<option value="${l}">${name}</option>`;
+        let native = l.toUpperCase();
+        try {
+          // Leemos el nombre nativo directamente del archivo de idioma correspondiente
+          const lPath = path.join(__dirname, 'assets', 'lang', 'settings', `${l}.json`);
+          const lData = JSON.parse(fs.readFileSync(lPath, 'utf8'));
+          native = lData.lang_name_native || native;
+        } catch (e) { console.error(`Could not read native name for ${l}`, e); }
+
+        const translated = i18n['lang_' + l] || native;
+        const label = (native === translated) ? native : `${native} (${translated})`;
+        
+        select.innerHTML += `<option value="${l}">${label}</option>`;
       });
 
       // Seleccionar el actual después de cargar la lista
@@ -359,8 +370,10 @@
     document.getElementById('toggle-restore-tabs').checked = s.restoreTabs;
     document.getElementById('toggle-close-warn').checked   = s.closeWarn;
 
-    loadLocale();
-    populateLocales();
+    (async () => {
+      await loadLocale();
+      await populateLocales();
+    })();
 
     // Auto-save on change
     function onChange() {
