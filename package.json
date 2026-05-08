@@ -30,8 +30,7 @@
       "target": [
         "nsis"
       ],
-      "icon": "renderer/assets/img/icon.ico",
-      "differentialPackage": true
+      "icon": "renderer/assets/img/icon.ico"
     },
     "linux": {
       "target": [
@@ -39,8 +38,23 @@
         "deb",
         "flatpak"
       ],
-      "icon": "renderer/assets/img/icon.png",
+      "executableName": "storm-browser",
+      "icon": "renderer/assets/img/logo.svg",
       "category": "Network"
+    },
+    "flatpak": {
+      "runtime": "org.freedesktop.Platform",
+      "runtimeVersion": "23.08",
+      "sdk": "org.freedesktop.Sdk",
+      "finishArgs": [
+        "--share=ipc",
+        "--share=network",
+        "--socket=x11",
+        "--socket=wayland",
+        "--socket=pulseaudio",
+        "--device=dri",
+        "--filesystem=xdg-download"
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -49,7 +63,7 @@
     }
   },
   "devDependencies": {
-    "electron": "^42.0.0",
+    "electron": "^29.0.0",
     "electron-builder": "^26.8.1"
   },
   "dependencies": {

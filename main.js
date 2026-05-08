@@ -48,7 +48,7 @@ function createMainWindow() {
       webviewTag: true,
       sandbox: false
     },
-    icon: path.join(__dirname, 'renderer/assets/img/icon.png')
+    icon: path.join(__dirname, 'renderer/assets/img/logo.svg')
   });
 
   mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
