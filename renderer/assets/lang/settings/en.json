@@ -1,0 +1,19 @@
+{
+  "settings_title": "Settings",
+  "startup": "Startup",
+  "show_splash": "Show splash screen",
+  "show_splash_desc": "Display the StormBrowser loading screen on startup",
+  "tabs": "Tabs",
+  "restore_tabs": "Restore tabs on startup",
+  "restore_tabs_desc": "Reopen your last session's tabs when StormBrowser starts",
+  "close_warn": "Warn before closing",
+  "close_warn_desc": "Show a confirmation dialog when closing with multiple tabs",
+  "general": "General",
+  "language": "Language",
+  "language_desc": "Choose your preferred language",
+  "about": "About",
+  "about_title": "About StormBrowser",
+  "about_desc": "Version info and credits",
+  "reset_btn": "Reset all settings to defaults",
+  "settings_saved": "Settings saved"
+}

@@ -96,7 +96,7 @@ ipcMain.handle('get-app-locale', () => app.getLocale());
 
 ipcMain.handle('list-locales', () => {
   try {
-    const langDir = path.join(__dirname, 'renderer/assets/lang');
+    const langDir = path.join(__dirname, 'renderer/assets/lang/index');
     return fs.readdirSync(langDir)
       .filter(f => f.endsWith('.json'))
       .map(f => f.replace('.json', ''));

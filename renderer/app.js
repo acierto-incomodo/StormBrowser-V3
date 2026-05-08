@@ -542,7 +542,7 @@ async function loadLocale() {
   }
 
   try {
-    const langPath = path.join(__dirname, 'assets', 'lang', `${lang}.json`);
+    const langPath = path.join(__dirname, 'assets', 'lang', 'index', `${lang}.json`);
     const data = fs.readFileSync(langPath, 'utf8');
     i18n = JSON.parse(data);
     applyTranslations();
