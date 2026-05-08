@@ -1,6 +1,6 @@
 {
   "name": "stormbrowser-v3",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "StormBrowser - A modern Electron browser by StormGamesStudios",
   "main": "main.js",
   "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
@@ -57,7 +57,7 @@
       ]
     },
     "nsis": {
-      "oneClick": false,
+      "oneClick": true,
       "allowToChangeInstallationDirectory": false,
       "include": "installer.nsh"
     }
