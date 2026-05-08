@@ -1,0 +1,15 @@
+{
+  "new_tab": "Nueva pestaña",
+  "settings": "Ajustes",
+  "about": "Sobre StormBrowser",
+  "search_placeholder": "Busca o introduce una URL...",
+  "ntp_placeholder": "Busca en la web o introduce una URL...",
+  "confirm_close_title": "¿Cerrar StormBrowser?",
+  "confirm_close_multi": "Tienes {n} pestañas abiertas. ¿Estás seguro de que quieres cerrar?",
+  "confirm_close_msg": "¿Estás seguro de que quieres cerrar StormBrowser?",
+  "cancel": "Cancelar",
+  "close": "Cerrar",
+  "minimize": "Minimizar",
+  "maximize": "Maximizar",
+  "home": "Inicio"
+}

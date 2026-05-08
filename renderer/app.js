@@ -1,4 +1,6 @@
 const { ipcRenderer } = require('electron');
+const fs = require('fs');
+const path = require('path');
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const HOME_URL      = 'storm://newtab';
@@ -10,7 +12,8 @@ const SEARCH_ENGINE = 'https://www.google.com/search?q=';
 let tabs        = [];
 let activeTabId = null;
 let tabCounter  = 0;
-let settings    = { splash: true, restoreTabs: false, closeWarn: true };
+let settings    = { splash: true, restoreTabs: false, closeWarn: true, language: 'auto' };
+let i18n        = {};
 
 // ─── DOM ──────────────────────────────────────────────────────────────────────
 const tabsContainer   = document.getElementById('tabs-container');
@@ -38,6 +41,7 @@ const dialogConfirm   = document.getElementById('dialog-confirm');
 async function init() {
   // Load settings from main process (electron-store)
   settings = await ipcRenderer.invoke('get-settings');
+  await loadLocale();
 
   // Restore tabs or open a new one
   if (settings.restoreTabs) {
@@ -65,11 +69,14 @@ function requestClose() {
   const multi   = tabs.length > 1;
   const single  = tabs.length === 1 && nonHome.length === 1;
 
+  const dialogTitle = document.querySelector('.dialog-title');
+  if (dialogTitle) dialogTitle.textContent = i18n.confirm_close_title || 'Close StormBrowser?';
+
   if (multi) {
-    closeDialogMsg.textContent = `You have ${tabs.length} tabs open. Are you sure you want to close StormBrowser?`;
+    closeDialogMsg.textContent = (i18n.confirm_close_multi || 'You have {n} tabs open.').replace('{n}', tabs.length);
     showCloseDialog();
   } else if (single) {
-    closeDialogMsg.textContent = 'Are you sure you want to close StormBrowser?';
+    closeDialogMsg.textContent = i18n.confirm_close_msg || 'Close?';
     showCloseDialog();
   } else {
     ipcRenderer.send('window-close');
@@ -87,11 +94,21 @@ closeOverlay.addEventListener('click', (e) => { if (e.target === closeOverlay) h
 // Listen for settings changes dispatched from settings page
 window.addEventListener('settings-changed', async () => {
   settings = await ipcRenderer.invoke('get-settings');
+  await loadLocale();
 });
 // Also handle postMessage from settings webview
 window.addEventListener('message', (e) => {
-  if (e.data?.type === 'settings-changed') {
+  if (e.data?.type === 'save-settings') {
+    // Save settings to main process and update local state
+    const langChanged = settings.language !== e.data.settings.language;
+    ipcRenderer.send('save-settings', e.data.settings);
+    settings = e.data.settings;
+    if (langChanged) location.reload();
+  } else if (e.data?.type === 'settings-changed') {
     ipcRenderer.invoke('get-settings').then(s => { settings = s; });
+  } else if (e.data?.type === 'navigate') {
+    // Handle navigation requests from internal pages
+    navigate(e.data.url);
   }
 });
 
@@ -144,9 +161,9 @@ function createTab(url = HOME_URL) {
 }
 
 function tabTitleFor(url) {
-  if (url === HOME_URL)     return 'New Tab';
-  if (url === SETTINGS_URL) return 'Settings';
-  if (url === INFO_URL)     return 'About StormBrowser';
+  if (url === HOME_URL)     return i18n.new_tab || 'New Tab';
+  if (url === SETTINGS_URL) return i18n.settings || 'Settings';
+  if (url === INFO_URL)     return i18n.about || 'About StormBrowser';
   return url;
 }
 
@@ -512,6 +529,43 @@ function escHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ─── Localization ─────────────────────────────────────────────────────────────
+async function loadLocale() {
+  let lang = settings.language;
+  if (!lang || lang === 'auto') {
+    const sys = await ipcRenderer.invoke('get-app-locale');
+    if (sys.startsWith('es')) lang = 'es';
+    else if (sys.startsWith('eu')) lang = 'eu';
+    else lang = 'en';
+  }
+
+  try {
+    const langPath = path.join(__dirname, 'assets', 'lang', `${lang}.json`);
+    const data = fs.readFileSync(langPath, 'utf8');
+    i18n = JSON.parse(data);
+    applyTranslations();
+  } catch (err) { console.error('Localization error:', err); }
+}
+
+function applyTranslations() {
+  if (urlBar) urlBar.placeholder = i18n.search_placeholder || '';
+  if (ntpSearch) ntpSearch.placeholder = i18n.ntp_placeholder || '';
+  
+  document.getElementById('btn-settings')?.setAttribute('title', i18n.settings || '');
+  document.getElementById('btn-min')?.setAttribute('title', i18n.minimize || '');
+  document.getElementById('btn-max')?.setAttribute('title', i18n.maximize || '');
+  document.getElementById('btn-close')?.setAttribute('title', i18n.close || '');
+  document.getElementById('btn-home')?.setAttribute('title', i18n.home || '');
+  document.getElementById('new-tab-btn')?.setAttribute('title', (i18n.new_tab || 'New tab') + ' (Ctrl+T)');
+  
+  const dCancel = document.getElementById('dialog-cancel');
+  const dConfirm = document.getElementById('dialog-confirm');
+  if (dCancel) dCancel.textContent = i18n.cancel || 'Cancel';
+  if (dConfirm) dConfirm.textContent = i18n.close || 'Close';
+
+  tabs.forEach(t => { t.title = tabTitleFor(t.url); updateTabEl(t); });
 }
 
 // ─── Start ────────────────────────────────────────────────────────────────────

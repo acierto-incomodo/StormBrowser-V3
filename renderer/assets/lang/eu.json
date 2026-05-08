@@ -1,0 +1,15 @@
+{
+  "new_tab": "Fitxa berria",
+  "settings": "Ezarpenak",
+  "about": "StormBrowser-i buruz",
+  "search_placeholder": "Bilatu edo idatzi URL bat...",
+  "ntp_placeholder": "Bilatu sarean edo idatzi URL bat...",
+  "confirm_close_title": "StormBrowser itxi?",
+  "confirm_close_multi": "{n} fitxa irekita dituzu. Ziur zaude itxi nahi duzula?",
+  "confirm_close_msg": "Ziur zaude StormBrowser itxi nahi duzula?",
+  "cancel": "Utzi",
+  "close": "Itxi",
+  "minimize": "Minimizatu",
+  "maximize": "Maximizatu",
+  "home": "Hasiera"
+}

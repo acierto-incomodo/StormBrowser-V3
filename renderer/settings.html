@@ -109,6 +109,14 @@
       background: #fff;
     }
 
+    .setting-select {
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      color: var(--text-primary); border-radius: 6px; padding: 6px 10px;
+      font-family: inherit; font-size: 13px; outline: none;
+      cursor: pointer; min-width: 120px;
+    }
+    .setting-select:focus { border-color: var(--accent); }
+
     /* Save toast */
     #save-toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px);
@@ -213,6 +221,28 @@
     </div>
   </div>
 
+  <!-- General / Language -->
+  <div class="section">
+    <div class="section-label">General</div>
+    <div class="card">
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div class="setting-text">
+          <div class="setting-title">Language</div>
+          <div class="setting-desc">Choose your preferred language</div>
+        </div>
+        <select id="select-lang" class="setting-select">
+          <option value="auto">Automatic</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="eu">Euskara</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
   <!-- About shortcut -->
   <div class="section">
     <div class="section-label">About</div>
@@ -248,10 +278,29 @@
   </div>
 
   <script>
+    const { ipcRenderer } = require('electron');
+
+    async function populateLocales() {
+      const select = document.getElementById('select-lang');
+      const locales = await ipcRenderer.invoke('list-locales');
+      
+      // Mantener 'auto' y añadir los detectados
+      select.innerHTML = '<option value="auto">Automatic</option>';
+      locales.forEach(l => {
+        const name = l === 'en' ? 'English' : l === 'es' ? 'Español' : l === 'eu' ? 'Euskara' : l.toUpperCase();
+        select.innerHTML += `<option value="${l}">${name}</option>`;
+      });
+
+      // Seleccionar el actual después de cargar la lista
+      const current = loadSettings().language || 'auto';
+      select.value = current;
+    }
+
     const DEFAULTS = {
       splash: true,
       restoreTabs: false,
-      closeWarn: true
+      closeWarn: true,
+      language: 'auto'
     };
 
     function loadSettings() {
@@ -261,10 +310,13 @@
     }
 
     function saveSettings(s) {
-      localStorage.setItem('storm-settings', JSON.stringify(s));
+      try {
+        localStorage.setItem('storm-settings', JSON.stringify(s));
+      } catch (e) {}
       showToast();
-      // Notify main window if opened inside browser
-      try { window.opener?.dispatchEvent(new Event('settings-changed')); } catch {}
+      
+      // Send new settings to parent (app.js) to persist via main process
+      window.parent.postMessage({ type: 'save-settings', settings: s }, '*');
     }
 
     function showToast() {
@@ -279,24 +331,28 @@
     document.getElementById('toggle-restore-tabs').checked = s.restoreTabs;
     document.getElementById('toggle-close-warn').checked   = s.closeWarn;
 
+    populateLocales();
+
     // Auto-save on change
     function onChange() {
       saveSettings({
         splash:      document.getElementById('toggle-splash').checked,
         restoreTabs: document.getElementById('toggle-restore-tabs').checked,
-        closeWarn:   document.getElementById('toggle-close-warn').checked
+        closeWarn:   document.getElementById('toggle-close-warn').checked,
+        language:    document.getElementById('select-lang').value
       });
     }
 
     document.getElementById('toggle-splash').addEventListener('change', onChange);
     document.getElementById('toggle-restore-tabs').addEventListener('change', onChange);
     document.getElementById('toggle-close-warn').addEventListener('change', onChange);
+    document.getElementById('select-lang').addEventListener('change', onChange);
 
     // Open info page
     document.getElementById('open-info-row').addEventListener('click', () => {
-      // If running inside Electron webview, post message to parent
+      // Post message to parent to trigger navigation
       try {
-        window.top.postMessage({ type: 'navigate', url: 'storm://info' }, '*');
+        window.parent.postMessage({ type: 'navigate', url: 'storm://info' }, '*');
       } catch {
         window.location.href = '../StormGamesStudios/info.html';
       }

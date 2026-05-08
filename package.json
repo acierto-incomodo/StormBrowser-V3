@@ -1,7 +1,7 @@
 {
-  "name": "storm-browser",
-  "version": "1.0.0",
-  "description": "Storm Browser - A modern Electron browser by StormGamesStudios",
+  "name": "stormbrowser-v3",
+  "version": "1.1.0",
+  "description": "StormBrowser - A modern Electron browser by StormGamesStudios",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -11,7 +11,7 @@
   },
   "build": {
     "appId": "com.stormgamesstudios.stormbrowser",
-    "productName": "Storm Browser",
+    "productName": "StormBrowser",
     "directories": {
       "output": "dist"
     },
@@ -26,17 +26,25 @@
       "repo": "storm-browser"
     },
     "win": {
-      "target": "nsis",
-      "icon": "renderer/assets/icon.ico"
+      "target": [
+        "nsis"
+      ],
+      "icon": "renderer/assets/img/icon.ico",
+      "differentialPackage": true
     },
     "linux": {
-      "target": ["AppImage", "deb"],
-      "icon": "renderer/assets/icon.png",
+      "target": [
+        "AppImage",
+        "deb",
+        "flatpak"
+      ],
+      "icon": "renderer/assets/img/icon.png",
       "category": "Network"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": false,
+      "include": "installer.nsh"
     }
   },
   "devDependencies": {

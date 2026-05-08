@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
-const Store = require('electron-store');
+const fs = require('fs');
+const Store = require('electron-store').default;
 
 const store = new Store();
 
@@ -42,18 +43,19 @@ function createMainWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
+      nodeIntegrationInSubFrames: true,
       contextIsolation: false,
       webviewTag: true,
       sandbox: false
     },
-    icon: path.join(__dirname, 'renderer/assets/icon.png')
+    icon: path.join(__dirname, 'renderer/assets/img/icon.png')
   });
 
   mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
 
   mainWindow.once('ready-to-show', () => {
     // Check splash setting
-    const settings = store.get('settings', { splash: true, restoreTabs: false, closeWarn: true });
+    const settings = store.get('settings', { splash: true, restoreTabs: false, closeWarn: true, language: 'auto' });
 
     if (settings.splash && splashWindow) {
       // Show splash for at least 1.6s
@@ -88,8 +90,18 @@ ipcMain.on('window-close', () => mainWindow?.close());
 ipcMain.handle('window-is-maximized', () => mainWindow?.isMaximized() ?? false);
 
 // ─── IPC: Settings ────────────────────────────────────────────────────────────
-ipcMain.handle('get-settings', () => store.get('settings', { splash: true, restoreTabs: false, closeWarn: true }));
+ipcMain.handle('get-settings', () => store.get('settings', { splash: true, restoreTabs: false, closeWarn: true, language: 'auto' }));
 ipcMain.on('save-settings', (_, settings) => store.set('settings', settings));
+ipcMain.handle('get-app-locale', () => app.getLocale());
+
+ipcMain.handle('list-locales', () => {
+  try {
+    const langDir = path.join(__dirname, 'renderer/assets/lang');
+    return fs.readdirSync(langDir)
+      .filter(f => f.endsWith('.json'))
+      .map(f => f.replace('.json', ''));
+  } catch (e) { return ['en']; }
+});
 
 // ─── IPC: Saved tabs ─────────────────────────────────────────────────────────
 ipcMain.handle('get-saved-tabs', () => store.get('saved-tabs', []));

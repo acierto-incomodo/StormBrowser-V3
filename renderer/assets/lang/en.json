@@ -1,0 +1,15 @@
+{
+  "new_tab": "New Tab",
+  "settings": "Settings",
+  "about": "About StormBrowser",
+  "search_placeholder": "Search or enter URL...",
+  "ntp_placeholder": "Search the web or enter a URL...",
+  "confirm_close_title": "Close StormBrowser?",
+  "confirm_close_multi": "You have {n} tabs open. Are you sure you want to close?",
+  "confirm_close_msg": "Are you sure you want to close StormBrowser?",
+  "cancel": "Cancel",
+  "close": "Close",
+  "minimize": "Minimize",
+  "maximize": "Maximize",
+  "home": "Home"
+}
