@@ -99,12 +99,14 @@ function requestClose() {
         tabs.length,
       ),
       () => ipcRenderer.send("window-close"),
+      i18n.close,
     );
   } else if (single) {
     showCustomDialog(
       i18n.confirm_close_title || "Close StormBrowser?",
       i18n.confirm_close_msg || "Are you sure you want to close?",
       () => ipcRenderer.send("window-close"),
+      i18n.close,
     );
   } else {
     ipcRenderer.send("window-close");
@@ -138,6 +140,19 @@ window.addEventListener("message", (e) => {
       i18n.close_all_tabs || "Close all tabs",
       i18n.confirm_close_all || "Are you sure you want to close all tabs?",
       () => closeAllTabs(),
+      i18n.close,
+    );
+  } else if (e.data?.type === "reset-settings") {
+    showCustomDialog(
+      i18n.settings || "Settings",
+      i18n.confirm_reset || "Are you sure you want to reset all settings to defaults?",
+      () => {
+        const settingsIframe = document.getElementById("settings-page");
+        if (settingsIframe) {
+          settingsIframe.contentWindow.postMessage({ type: "confirm-reset" }, "*");
+        }
+      },
+      i18n.yes || "Yes"
     );
   }
 });
@@ -362,10 +377,16 @@ function closeAllTabs() {
   setTimeout(updateScrollButtons, 50);
 }
 
-function showCustomDialog(title, msg, onConfirm) {
+function showCustomDialog(title, msg, onConfirm, confirmText) {
   if (closeOverlayTitle) closeOverlayTitle.textContent = title;
   closeDialogMsg.textContent = msg;
   dialogAction = onConfirm;
+
+  const dConfirm = document.getElementById("dialog-confirm");
+  if (dConfirm) {
+    dConfirm.textContent = confirmText || i18n.close || "Close";
+  }
+
   closeOverlay.classList.remove("hidden");
 }
 

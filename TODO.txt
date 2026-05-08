@@ -1,3 +1,1 @@
-1) agrega un nuevo ajuste para el @ghostery/adblocker-electron (llamalo Ad Block).
-2) al lado del simbolo de la casa agrega un escudo para activar y desactivar)
-3) actualiza el README.md
+Sorprendentemente todo hecho.

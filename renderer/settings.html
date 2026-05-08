@@ -743,6 +743,9 @@
           document.getElementById("toggle-splash").checked = !!s.splash;
           document.getElementById("toggle-restore-tabs").checked = !!s.restoreTabs;
           document.getElementById("toggle-close-warn").checked = !!s.closeWarn;
+        } else if (e.data?.type === "confirm-reset") {
+          localStorage.setItem("storm-settings", JSON.stringify({ ...DEFAULTS }));
+          location.reload();
         }
       });
 
@@ -766,13 +769,7 @@
 
       // Reset
       document.getElementById("btn-reset").addEventListener("click", () => {
-        if (confirm("Reset all settings to their defaults?")) {
-          localStorage.setItem(
-            "storm-settings",
-            JSON.stringify({ ...DEFAULTS }),
-          );
-          location.reload();
-        }
+        window.parent.postMessage({ type: "reset-settings" }, "*");
       });
     </script>
   </body>
