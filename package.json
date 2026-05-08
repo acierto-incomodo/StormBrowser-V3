@@ -30,7 +30,7 @@
       "target": [
         "nsis"
       ],
-      "icon": "renderer/assets/img/icon.ico"
+      "icon": "renderer/assets/img/logo.ico"
     },
     "linux": {
       "target": [
