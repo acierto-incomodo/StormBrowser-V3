@@ -1,7 +1,7 @@
 {
   "name": "stormbrowser-v3",
-  "version": "1.1.1",
-  "description": "StormBrowser - A modern Electron browser by StormGamesStudios",
+  "version": "1.1.2",
+  "description": "StormBrowser - A modern browser by StormGamesStudios",
   "main": "main.js",
   "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
   "scripts": {
@@ -24,7 +24,7 @@
     "publish": {
       "provider": "github",
       "owner": "acierto-incomodo",
-      "repo": "storm-browser"
+      "repo": "StormBrowser-V3"
     },
     "win": {
       "target": [
@@ -59,6 +59,9 @@
     "nsis": {
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
+      "createStartMenuShortcut": true,
+      "createDesktopShortcut": true,
+      "differentialPackage": true,
       "include": "installer.nsh"
     }
   },
