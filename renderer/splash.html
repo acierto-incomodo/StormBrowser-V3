@@ -1,126 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <title>StormBrowser</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+  <head>
+    <meta charset="UTF-8" />
+    <title>StormBrowser</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    html, body {
-      width: 100%; height: 100%;
-      background: #0f0f13;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Inter', system-ui, sans-serif;
-      overflow: hidden;
-      user-select: none;
-      -webkit-app-region: drag;
-    }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background: #0f0f13;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Inter", system-ui, sans-serif;
+        overflow: hidden;
+        user-select: none;
+        -webkit-app-region: drag;
+      }
 
-    .splash {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 28px;
-      animation: fadeIn 0.4s ease;
-    }
+      .splash {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 28px;
+        animation: fadeIn 0.4s ease;
+      }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-    .logo-wrap {
-      position: relative;
-      display: flex; align-items: center; justify-content: center;
-    }
+      .logo-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    .logo-glow {
-      position: absolute;
-      width: 120px; height: 120px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #6c8fff33 0%, transparent 70%);
-      animation: glow 2s ease-in-out infinite alternate;
-    }
+      .logo-glow {
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #6c8fff33 0%, transparent 70%);
+        animation: glow 2s ease-in-out infinite alternate;
+      }
 
-    @keyframes glow {
-      from { transform: scale(0.9); opacity: 0.6; }
-      to   { transform: scale(1.2); opacity: 1; }
-    }
+      @keyframes glow {
+        from {
+          transform: scale(0.9);
+          opacity: 0.6;
+        }
+        to {
+          transform: scale(1.2);
+          opacity: 1;
+        }
+      }
 
-    .logo-wrap svg { position: relative; z-index: 1; }
+      .logo-wrap svg {
+        position: relative;
+        z-index: 1;
+      }
 
-    .title {
-      font-size: 26px;
-      font-weight: 300;
-      letter-spacing: -0.5px;
-      background: linear-gradient(135deg, #e8e8f0 30%, #6c8fff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-align: center;
-    }
+      .title {
+        font-size: 26px;
+        font-weight: 300;
+        letter-spacing: -0.5px;
+        background: linear-gradient(135deg, #e8e8f0 30%, #6c8fff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+      }
 
-    .subtitle {
-      font-size: 11px;
-      color: #55556a;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-top: 2px;
-      text-align: center;
-    }
+      .subtitle {
+        font-size: 11px;
+        color: #55556a;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-top: 2px;
+        text-align: center;
+      }
 
-    .loader {
-      width: 180px;
-      height: 2px;
-      background: #1e1e2a;
-      border-radius: 2px;
-      overflow: hidden;
-    }
+      .loader {
+        width: 180px;
+        height: 2px;
+        background: #1e1e2a;
+        border-radius: 2px;
+        overflow: hidden;
+      }
 
-    .loader-bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #6c8fff, #a78bfa);
-      border-radius: 2px;
-      animation: load 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
+      .loader-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #6c8fff, #a78bfa);
+        border-radius: 2px;
+        animation: load 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
 
-    @keyframes load {
-      0%   { width: 0%; }
-      60%  { width: 75%; }
-      85%  { width: 90%; }
-      100% { width: 100%; }
-    }
+      @keyframes load {
+        0% {
+          width: 0%;
+        }
+        60% {
+          width: 75%;
+        }
+        85% {
+          width: 90%;
+        }
+        100% {
+          width: 100%;
+        }
+      }
 
-    .made-by {
-      position: absolute;
-      bottom: 18px;
-      font-size: 10.5px;
-      color: #35354a;
-      letter-spacing: 0.5px;
-    }
-  </style>
-</head>
-<body>
-  <div class="splash">
-    <div class="logo-wrap">
-      <div class="logo-glow"></div>
-      <svg width="72" height="72" viewBox="0 0 48 48" fill="none">
-        <circle cx="24" cy="24" r="22" stroke="url(#sg)" stroke-width="2"/>
-        <path d="M24 8 L38 38 L24 32 L10 38 Z" fill="url(#sg)" opacity="0.95"/>
-        <defs>
-          <linearGradient id="sg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#6c8fff"/>
-            <stop offset="100%" stop-color="#a78bfa"/>
-          </linearGradient>
-        </defs>
-      </svg>
+      .made-by {
+        position: absolute;
+        bottom: 18px;
+        font-size: 10.5px;
+        color: #35354a;
+        letter-spacing: 0.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="splash">
+      <div class="logo-wrap">
+        <div class="logo-glow"></div>
+        <svg width="72" height="72" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="22" stroke="url(#sg)" stroke-width="2" />
+          <path
+            d="M24 8 L38 38 L24 32 L10 38 Z"
+            fill="url(#sg)"
+            opacity="0.95"
+          />
+          <defs>
+            <linearGradient
+              id="sg"
+              x1="0"
+              y1="0"
+              x2="48"
+              y2="48"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stop-color="#6c8fff" />
+              <stop offset="100%" stop-color="#a78bfa" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div>
+        <div class="title">StormBrowser</div>
+        <div class="subtitle">by StormGamesStudios</div>
+      </div>
+      <div class="loader"><div class="loader-bar"></div></div>
     </div>
-    <div>
-      <div class="title">StormBrowser</div>
-      <div class="subtitle">by StormGamesStudios</div>
-    </div>
-    <div class="loader"><div class="loader-bar"></div></div>
-  </div>
-  <div class="made-by">StormGamesStudios © 2025</div>
-</body>
+    <div class="made-by">StormGamesStudios © 2025</div>
+  </body>
 </html>

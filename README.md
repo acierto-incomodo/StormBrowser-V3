@@ -37,14 +37,14 @@ Output goes to the `dist/` folder.
 
 ## Keyboard shortcuts
 
-| Shortcut | Action |
-|---|---|
-| `Ctrl+T` | New tab |
-| `Ctrl+W` | Close tab |
-| `Ctrl+L` | Focus URL bar |
-| `Ctrl+R` | Reload |
-| `Alt+←` | Back |
-| `Alt+→` | Forward |
+| Shortcut   | Action          |
+| ---------- | --------------- |
+| `Ctrl+T`   | New tab         |
+| `Ctrl+W`   | Close tab       |
+| `Ctrl+L`   | Focus URL bar   |
+| `Ctrl+R`   | Reload          |
+| `Alt+←`    | Back            |
+| `Alt+→`    | Forward         |
 | `Ctrl+1-9` | Switch to tab N |
 
 ## Features

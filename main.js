@@ -1,13 +1,13 @@
-const { app, BrowserWindow, ipcMain, session } = require('electron');
-const path = require('path');
-const fs = require('fs');
-const Store = require('electron-store').default;
+const { app, BrowserWindow, ipcMain, session } = require("electron");
+const path = require("path");
+const fs = require("fs");
+const Store = require("electron-store").default;
 
 const store = new Store();
 
 let autoUpdater;
 try {
-  autoUpdater = require('electron-updater').autoUpdater;
+  autoUpdater = require("electron-updater").autoUpdater;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
 } catch (_) {}
@@ -25,9 +25,9 @@ function createSplash() {
     resizable: false,
     center: true,
     skipTaskbar: true,
-    webPreferences: { nodeIntegration: false, contextIsolation: true }
+    webPreferences: { nodeIntegration: false, contextIsolation: true },
   });
-  splashWindow.loadFile(path.join(__dirname, 'renderer/splash.html'));
+  splashWindow.loadFile(path.join(__dirname, "renderer/splash.html"));
 }
 
 // ─── Main window ──────────────────────────────────────────────────────────────
@@ -38,24 +38,30 @@ function createMainWindow() {
     minWidth: 800,
     minHeight: 600,
     frame: false,
-    backgroundColor: '#0f0f13',
+    backgroundColor: "#0f0f13",
     show: false,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
       nodeIntegration: true,
       nodeIntegrationInSubFrames: true,
       contextIsolation: false,
       webviewTag: true,
-      sandbox: false
+      sandbox: false,
     },
-    icon: path.join(__dirname, 'renderer/assets/img/logo.svg')
+    icon: path.join(__dirname, "renderer/assets/img/logo.svg"),
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
+  mainWindow.loadFile(path.join(__dirname, "renderer/index.html"));
 
-  mainWindow.once('ready-to-show', () => {
+  mainWindow.once("ready-to-show", () => {
     // Check splash setting
-    const settings = store.get('settings', { splash: true, restoreTabs: false, closeWarn: true, language: 'auto', startMaximized: false });
+    const settings = store.get("settings", {
+      splash: true,
+      restoreTabs: false,
+      closeWarn: true,
+      language: "auto",
+      startMaximized: false,
+    });
 
     if (settings.splash && splashWindow) {
       // Show splash for at least 1.6s
@@ -64,7 +70,8 @@ function createMainWindow() {
         splashWindow = null;
         mainWindow.show();
         if (settings.startMaximized) mainWindow.maximize();
-        if (app.isPackaged && autoUpdater) autoUpdater.checkForUpdatesAndNotify();
+        if (app.isPackaged && autoUpdater)
+          autoUpdater.checkForUpdatesAndNotify();
       }, 1600);
     } else {
       splashWindow?.close();
@@ -76,64 +83,81 @@ function createMainWindow() {
   });
 
   // Close warning — handled in renderer, but also catch system close
-  mainWindow.on('close', (e) => {
+  mainWindow.on("close", (e) => {
     // renderer sends 'confirm-close' after user confirms, so we just forward
   });
 
-  mainWindow.on('closed', () => { mainWindow = null; });
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
 }
 
 // ─── IPC: Window controls ─────────────────────────────────────────────────────
-ipcMain.on('window-minimize', () => mainWindow?.minimize());
-ipcMain.on('window-maximize', () => {
+ipcMain.on("window-minimize", () => mainWindow?.minimize());
+ipcMain.on("window-maximize", () => {
   mainWindow?.isMaximized() ? mainWindow.unmaximize() : mainWindow?.maximize();
 });
-ipcMain.on('window-close', () => mainWindow?.close());
-ipcMain.handle('window-is-maximized', () => mainWindow?.isMaximized() ?? false);
+ipcMain.on("window-close", () => mainWindow?.close());
+ipcMain.handle("window-is-maximized", () => mainWindow?.isMaximized() ?? false);
 
 // ─── IPC: Settings ────────────────────────────────────────────────────────────
-ipcMain.handle('get-settings', () => store.get('settings', { splash: true, restoreTabs: false, closeWarn: true, language: 'auto', startMaximized: false }));
-ipcMain.on('save-settings', (_, settings) => store.set('settings', settings));
-ipcMain.handle('get-app-locale', () => app.getLocale());
+ipcMain.handle("get-settings", () =>
+  store.get("settings", {
+    splash: true,
+    restoreTabs: false,
+    closeWarn: true,
+    language: "auto",
+    startMaximized: false,
+  }),
+);
+ipcMain.on("save-settings", (_, settings) => store.set("settings", settings));
+ipcMain.handle("get-app-locale", () => app.getLocale());
 
-ipcMain.handle('list-locales', () => {
+ipcMain.handle("list-locales", () => {
   try {
-    const langDir = path.join(__dirname, 'renderer/assets/lang/index');
-    return fs.readdirSync(langDir)
-      .filter(f => f.endsWith('.json'))
-      .map(f => f.replace('.json', ''));
-  } catch (e) { return ['en']; }
+    const langDir = path.join(__dirname, "renderer/assets/lang/index");
+    return fs
+      .readdirSync(langDir)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => f.replace(".json", ""));
+  } catch (e) {
+    return ["en"];
+  }
 });
 
 // ─── IPC: Saved tabs ─────────────────────────────────────────────────────────
-ipcMain.handle('get-saved-tabs', () => store.get('saved-tabs', []));
-ipcMain.on('save-tabs', (_, tabs) => store.set('saved-tabs', tabs));
+ipcMain.handle("get-saved-tabs", () => store.get("saved-tabs", []));
+ipcMain.on("save-tabs", (_, tabs) => store.set("saved-tabs", tabs));
 
 // ─── IPC: Updater ────────────────────────────────────────────────────────────
 if (autoUpdater) {
-  autoUpdater.on('update-available',  () => mainWindow?.webContents.send('update-available'));
-  autoUpdater.on('update-downloaded', () => mainWindow?.webContents.send('update-downloaded'));
+  autoUpdater.on("update-available", () =>
+    mainWindow?.webContents.send("update-available"),
+  );
+  autoUpdater.on("update-downloaded", () =>
+    mainWindow?.webContents.send("update-downloaded"),
+  );
 }
-ipcMain.on('install-update', () => autoUpdater?.quitAndInstall());
+ipcMain.on("install-update", () => autoUpdater?.quitAndInstall());
 
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const headers = { ...details.responseHeaders };
-    delete headers['content-security-policy'];
-    delete headers['Content-Security-Policy'];
+    delete headers["content-security-policy"];
+    delete headers["Content-Security-Policy"];
     callback({ responseHeaders: headers });
   });
 
-  const settings = store.get('settings', { splash: true });
+  const settings = store.get("settings", { splash: true });
   if (settings.splash) createSplash();
   createMainWindow();
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
 });
 
-app.on('activate', () => {
+app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
 });
