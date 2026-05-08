@@ -1,9 +1,8 @@
 {
-  "name": "stormbrowser-v3",
-  "version": "1.0.18",
-  "description": "StormBrowser - A modern Electron browser by StormGamesStudios",
+  "name": "storm-browser",
+  "version": "1.0.0",
+  "description": "Storm Browser - A modern Electron browser by StormGamesStudios",
   "main": "main.js",
-  "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
   "scripts": {
     "start": "electron .",
     "build:win": "electron-builder --win",
@@ -12,7 +11,7 @@
   },
   "build": {
     "appId": "com.stormgamesstudios.stormbrowser",
-    "productName": "StormBrowser",
+    "productName": "Storm Browser",
     "directories": {
       "output": "dist"
     },
@@ -21,47 +20,30 @@
       "preload.js",
       "renderer/**/*"
     ],
-    "extraResources": [
-      {
-        "from": "renderer/extraFiles",
-        "to": "extraFiles",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
     "publish": {
       "provider": "github",
       "owner": "acierto-incomodo",
-      "repo": "StormBrowser-V3"
+      "repo": "storm-browser"
     },
     "win": {
       "target": "nsis",
       "icon": "renderer/assets/icon.ico"
     },
     "linux": {
-      "target": [
-        "AppImage",
-        "deb",
-        "flatpak"
-      ],
+      "target": ["AppImage", "deb"],
       "icon": "renderer/assets/icon.png",
       "category": "Network"
     },
     "nsis": {
-      "oneClick": true,
-      "allowToChangeInstallationDirectory": false,
-      "createStartMenuShortcut": true,
-      "createDesktopShortcut": true,
-      "include": "installer.nsh",
-      "differentialPackage": true
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   },
   "devDependencies": {
-    "electron": "^41.4.0",
-    "electron-builder": "^26.8.1"
+    "electron": "^31.0.0",
+    "electron-builder": "^24.0.0"
   },
   "dependencies": {
-    "electron-updater": "^6.8.3"
+    "electron-updater": "^6.3.0"
   }
 }
