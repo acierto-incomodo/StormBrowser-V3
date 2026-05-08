@@ -131,11 +131,14 @@ ipcMain.on("save-tabs", (_, tabs) => store.set("saved-tabs", tabs));
 
 // ─── IPC: Updater ────────────────────────────────────────────────────────────
 if (autoUpdater) {
-  autoUpdater.on("update-available", () =>
-    mainWindow?.webContents.send("update-available"),
+  autoUpdater.on("update-available", (info) =>
+    mainWindow?.webContents.send("update-available", info),
   );
-  autoUpdater.on("update-downloaded", () =>
-    mainWindow?.webContents.send("update-downloaded"),
+  autoUpdater.on("download-progress", (progress) =>
+    mainWindow?.webContents.send("update-progress", progress),
+  );
+  autoUpdater.on("update-downloaded", (info) =>
+    mainWindow?.webContents.send("update-downloaded", info),
   );
 }
 ipcMain.on("install-update", () => autoUpdater?.quitAndInstall());

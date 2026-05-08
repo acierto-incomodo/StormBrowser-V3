@@ -11,5 +11,9 @@
   "close": "Cerrar",
   "minimize": "Minimizar",
   "maximize": "Maximizar",
-  "home": "Inicio"
+  "home": "Inicio",
+  "update_available": "Nueva versión {version} disponible. Actual: {current}",
+  "update_downloading": "Descargando: {percent}% ({transferred}/{total}) @ {speed} — faltan {time}",
+  "update_ready": "Versión {version} lista",
+  "install_restart": "Reiniciar e Instalar"
 }

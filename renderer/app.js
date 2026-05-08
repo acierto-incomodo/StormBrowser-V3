@@ -5,6 +5,7 @@ const path = require("path");
 // ─── Constants ────────────────────────────────────────────────────────────────
 const HOME_URL = "storm://newtab";
 const SETTINGS_URL = "storm://settings";
+const APP_VERSION = require("../package.json").version;
 const INFO_URL = "storm://info";
 const SEARCH_ENGINE = "https://www.google.com/search?q=";
 
@@ -22,6 +23,7 @@ let settings = {
 let i18n = {};
 
 // ─── DOM ──────────────────────────────────────────────────────────────────────
+window.addEventListener("beforeunload", () => saveTabs());
 const tabsContainer = document.getElementById("tabs-container");
 const tabScrollLeft = document.getElementById("tab-scroll-left");
 const closeOverlayTitle = document.querySelector(".dialog-title");
@@ -616,16 +618,42 @@ document
   );
 
 // ─── Auto-updater ─────────────────────────────────────────────────────────────
-ipcRenderer.on("update-available", () => {
+ipcRenderer.on("update-available", (e, info) => {
   if (updateBanner) {
-    updateBanner.textContent = "⬇ Downloading update...";
+    updateBanner.textContent = (i18n.update_available || "Update {version} available (Current: {current})")
+      .replace("{version}", info.version)
+      .replace("{current}", APP_VERSION);
     updateBanner.classList.remove("hidden");
   }
 });
-ipcRenderer.on("update-downloaded", () => {
+
+ipcRenderer.on("update-progress", (e, p) => {
   if (updateBanner) {
-    updateBanner.innerHTML =
-      '✓ Update ready — <button id="install-update-btn">Restart & Install</button>';
+    const percent = Math.floor(p.percent);
+    const transferred = (p.transferred / 1048576).toFixed(1) + "MB";
+    const total = (p.total / 1048576).toFixed(1) + "MB";
+    const speed = (p.bytesPerSecond / 1048576).toFixed(1) + "MB/s";
+    
+    let timeStr = "";
+    if (p.bytesPerSecond > 0) {
+      const seconds = Math.floor((p.total - p.transferred) / p.bytesPerSecond);
+      timeStr = seconds > 60 ? Math.floor(seconds/60) + "m" : seconds + "s";
+    }
+
+    updateBanner.textContent = (i18n.update_downloading || "Downloading: {percent}% ({transferred}/{total}) - {speed} - {time} left")
+      .replace("{percent}", percent)
+      .replace("{transferred}", transferred)
+      .replace("{total}", total)
+      .replace("{speed}", speed)
+      .replace("{time}", timeStr);
+  }
+});
+
+ipcRenderer.on("update-downloaded", (e, info) => {
+  if (updateBanner) {
+    const msg = (i18n.update_ready || "Version {version} ready").replace("{version}", info.version);
+    const btnLabel = i18n.install_restart || "Restart & Install";
+    updateBanner.innerHTML = `${msg} — <button id="install-update-btn">${btnLabel}</button>`;
     updateBanner.classList.remove("hidden");
     document
       .getElementById("install-update-btn")
