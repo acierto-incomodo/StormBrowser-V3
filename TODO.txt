@@ -1,1 +1,3 @@
-Sorprendentemente todo hecho.
+1) Historial.
+2) Comprobar que funciona el Ad Block.
+3) Extensiones.
