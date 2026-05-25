@@ -9,6 +9,8 @@ const APP_VERSION = require("../package.json").version;
 const INFO_URL = "storm://info";
 const SEARCH_ENGINE = "https://www.google.com/search?q=";
 
+const STORM_USER_AGENT = `Mozilla/5.0 (${process.platform === "darwin" ? "Macintosh; Intel Mac OS X 10_15_7" : process.platform === "linux" ? "X11; Linux x86_64" : "Windows NT 10.0; Win64; x64"}) AppleWebKit/537.36 (KHTML, like Gecko) StormBrowser/${APP_VERSION} Chrome/117.0.0.0 Safari/537.36`;
+
 // ─── State ────────────────────────────────────────────────────────────────────
 let tabs = [];
 let activeTabId = null;
@@ -93,8 +95,8 @@ function requestClose() {
 
   if (multi) {
     showCustomDialog(
-      i18n.confirm_close_title || "Close StormBrowser?",
-      (i18n.confirm_close_multi || "You have {n} tabs open.").replace(
+      i18n.confirm_close_title || "¿Cerrar StormBrowser?",
+      (i18n.confirm_close_multi || "Tienes {n} pestañas abiertas.").replace(
         "{n}",
         tabs.length,
       ),
@@ -103,8 +105,8 @@ function requestClose() {
     );
   } else if (single) {
     showCustomDialog(
-      i18n.confirm_close_title || "Close StormBrowser?",
-      i18n.confirm_close_msg || "Are you sure you want to close?",
+      i18n.confirm_close_title || "¿Cerrar StormBrowser?",
+      i18n.confirm_close_msg || "¿Estás seguro de que quieres cerrar?",
       () => ipcRenderer.send("window-close"),
       i18n.close,
     );
@@ -137,22 +139,22 @@ window.addEventListener("message", (e) => {
     navigate(e.data.url);
   } else if (e.data?.type === "close-all-tabs") {
     showCustomDialog(
-      i18n.close_all_tabs || "Close all tabs",
-      i18n.confirm_close_all || "Are you sure you want to close all tabs?",
+      i18n.close_all_tabs || "Cerrar todas las pestañas",
+      i18n.confirm_close_all || "¿Estás seguro de que quieres cerrar todas las pestañas?",
       () => closeAllTabs(),
       i18n.close,
     );
   } else if (e.data?.type === "reset-settings") {
     showCustomDialog(
-      i18n.settings || "Settings",
-      i18n.confirm_reset || "Are you sure you want to reset all settings to defaults?",
+      i18n.settings || "Configuración",
+      i18n.confirm_reset || "¿Estás seguro de que quieres restablecer todos los ajustes a los valores predeterminados?",
       () => {
         const settingsIframe = document.getElementById("settings-page");
         if (settingsIframe) {
           settingsIframe.contentWindow.postMessage({ type: "confirm-reset" }, "*");
         }
       },
-      i18n.yes || "Yes"
+      i18n.yes || "Sí"
     );
   }
 });
@@ -219,9 +221,9 @@ function createTab(url = HOME_URL) {
 }
 
 function tabTitleFor(url) {
-  if (url === HOME_URL) return i18n.new_tab || "New Tab";
-  if (url === SETTINGS_URL) return i18n.settings || "Settings";
-  if (url === INFO_URL) return i18n.about || "About StormBrowser";
+  if (url === HOME_URL) return i18n.new_tab || "Nueva pestaña";
+  if (url === SETTINGS_URL) return i18n.settings || "Configuración";
+  if (url === INFO_URL) return i18n.about || "Acerca de StormBrowser";
   return url;
 }
 
@@ -420,6 +422,7 @@ function saveTabs() {
 // ─── Webview ──────────────────────────────────────────────────────────────────
 function createWebview(tabId, url) {
   const wv = document.createElement("webview");
+  wv.setAttribute("useragent", STORM_USER_AGENT);
   wv.src = url;
   wv.dataset.tabId = tabId;
   wv.setAttribute("allowpopups", "");
@@ -661,7 +664,7 @@ document
 // ─── Auto-updater ─────────────────────────────────────────────────────────────
 ipcRenderer.on("update-available", (e, info) => {
   if (updateBanner) {
-    updateBanner.textContent = (i18n.update_available || "Update {version} available (Current: {current})")
+    updateBanner.textContent = (i18n.update_available || "Actualización {version} disponible (Actual: {current})")
       .replace("{version}", info.version)
       .replace("{current}", APP_VERSION);
     updateBanner.classList.remove("hidden");
@@ -681,7 +684,7 @@ ipcRenderer.on("update-progress", (e, p) => {
       timeStr = seconds > 60 ? Math.floor(seconds/60) + "m" : seconds + "s";
     }
 
-    updateBanner.textContent = (i18n.update_downloading || "Downloading: {percent}% ({transferred}/{total}) - {speed} - {time} left")
+    updateBanner.textContent = (i18n.update_downloading || "Descargando: {percent}% ({transferred}/{total}) - {speed} - {time} restantes")
       .replace("{percent}", percent)
       .replace("{transferred}", transferred)
       .replace("{total}", total)
@@ -692,8 +695,8 @@ ipcRenderer.on("update-progress", (e, p) => {
 
 ipcRenderer.on("update-downloaded", (e, info) => {
   if (updateBanner) {
-    const msg = (i18n.update_ready || "Version {version} ready").replace("{version}", info.version);
-    const btnLabel = i18n.install_restart || "Restart & Install";
+    const msg = (i18n.update_ready || "Versión {version} lista").replace("{version}", info.version);
+    const btnLabel = i18n.install_restart || "Reiniciar e instalar";
     updateBanner.innerHTML = `${msg} — <button id="install-update-btn">${btnLabel}</button>`;
     updateBanner.classList.remove("hidden");
     document
@@ -794,13 +797,13 @@ function applyTranslations() {
   document.getElementById("btn-home")?.setAttribute("title", i18n.home || "");
   document
     .getElementById("new-tab-btn")
-    ?.setAttribute("title", (i18n.new_tab || "New tab") + " (Ctrl+T)");
+    ?.setAttribute("title", (i18n.new_tab || "Nueva pestaña") + " (Ctrl+T)");
   updateAdBlockUI();
 
   const dCancel = document.getElementById("dialog-cancel");
   const dConfirm = document.getElementById("dialog-confirm");
-  if (dCancel) dCancel.textContent = i18n.cancel || "Cancel";
-  if (dConfirm) dConfirm.textContent = i18n.close || "Close";
+  if (dCancel) dCancel.textContent = i18n.cancel || "Cancelar";
+  if (dConfirm) dConfirm.textContent = i18n.close || "Cerrar";
 
   tabs.forEach((t) => {
     t.title = tabTitleFor(t.url);
