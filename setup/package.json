@@ -1,14 +1,12 @@
 {
   "name": "stormbrowser-v3",
-  "version": "1.1.6",
+  "version": "1.0.0",
   "description": "StormBrowser - A modern browser by StormGamesStudios",
   "main": "main.js",
   "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
   "scripts": {
     "start": "electron .",
-    "build:win": "electron-builder --win",
-    "build:linux": "electron-builder --linux",
-    "build:all": "electron-builder --win --linux"
+    "build": "electron-builder --win"
   },
   "build": {
     "appId": "com.stormgamesstudios.stormbrowser",
@@ -32,37 +30,14 @@
       ],
       "icon": "renderer/assets/img/logo-256x256.ico"
     },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb",
-        "flatpak"
-      ],
-      "executableName": "storm-browser",
-      "icon": "renderer/assets/img/logo.svg",
-      "category": "Network"
-    },
-    "flatpak": {
-      "runtime": "org.freedesktop.Platform",
-      "runtimeVersion": "23.08",
-      "sdk": "org.freedesktop.Sdk",
-      "finishArgs": [
-        "--share=ipc",
-        "--share=network",
-        "--socket=x11",
-        "--socket=wayland",
-        "--socket=pulseaudio",
-        "--device=dri",
-        "--filesystem=xdg-download"
-      ]
-    },
     "nsis": {
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
       "createStartMenuShortcut": true,
       "createDesktopShortcut": true,
       "differentialPackage": true,
-      "include": "installer.nsh"
+      "include": "installer.nsh",
+      "artifactName": "StormStore-Setup.${ext}"
     }
   },
   "devDependencies": {
@@ -70,9 +45,6 @@
     "electron-builder": "^26.8.1"
   },
   "dependencies": {
-    "@ghostery/adblocker-electron": "^2.17.3",
-    "@ghostery/adblocker-webextension": "^2.17.3",
-    "electron-store": "^11.0.2",
     "electron-updater": "^6.8.3"
   }
 }

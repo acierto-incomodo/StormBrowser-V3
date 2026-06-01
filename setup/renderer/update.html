@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Actualización de StormBrowser</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a1a;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+    .container { width: 80%; text-align: center; }
+    h2 { font-weight: 300; margin-bottom: 20px; }
+    .progress-container {
+      width: 100%;
+      height: 12px;
+      background: #333;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: #0078d4;
+      transition: width 0.3s ease;
+    }
+    .status { margin-top: 15px; font-size: 14px; color: #aaa; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 id="title">...</h2>
+    <div class="progress-container">
+      <div id="bar" class="progress-bar"></div>
+    </div>
+    <p id="status" class="status">...</p>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const bar = document.getElementById('bar');
+    const status = document.getElementById('status');
+    const title = document.getElementById('title');
+    let texts = {};
+
+    ipcRenderer.on('init-translations', (event, translations) => {
+      texts = translations;
+      title.innerText = texts.title_downloading;
+      status.innerText = texts.status_starting;
+    });
+
+    ipcRenderer.on('update-progress', (event, percent) => {
+      const p = Math.floor(percent);
+      bar.style.width = p + '%';
+      status.innerText = `${texts.status_progress || ''} ${p}%`;
+    });
+
+    ipcRenderer.on('update-finished', () => {
+      title.innerText = texts.title_ready;
+      status.innerText = texts.status_restarting;
+    });
+  </script>
+</body>
+</html>
