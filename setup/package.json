@@ -6,6 +6,8 @@
   "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
   "scripts": {
     "start": "electron .",
+    "clean": "if exist dist rd /s /q dist",
+    "prebuild": "npm run clean",
     "build": "electron-builder --win"
   },
   "build": {

@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
 
-let mainWindow;
+// Eliminada la variable mainWindow, ya que la ventana principal del navegador no se mostrará inicialmente.
 let updateWindow;
 let translations = {};
 
@@ -63,28 +63,10 @@ function createUpdateWindow() {
   });
 }
 
-function createMainWindow() {
-  mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    icon: path.join(__dirname, 'renderer/assets/img/logo-256x256.ico'),
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false
-    }
-  });
-
-  mainWindow.loadURL('https://www.google.com'); // Carga inicial
-  
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-}
+// Eliminada la función createMainWindow según la solicitud de solo mostrar el proceso de actualización.
 
 app.on('ready', () => {
   loadTranslations();
-  createMainWindow();
   
   // Comprobar si hay actualizaciones al iniciar
   autoUpdater.checkForUpdates();
@@ -93,7 +75,14 @@ app.on('ready', () => {
 // --- Eventos del autoUpdater ---
 
 autoUpdater.on('update-available', () => {
+  // Hay una actualización disponible, crear y mostrar la ventana de actualización.
   createUpdateWindow();
+});
+
+autoUpdater.on('update-not-available', () => {
+  // No hay actualizaciones disponibles. Según la solicitud de "solo mostrar lo de actualizar",
+  // y no mostrar la ventana principal del navegador, cerramos la aplicación.
+  app.quit();
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
@@ -115,11 +104,17 @@ autoUpdater.on('update-downloaded', () => {
 
 autoUpdater.on('error', (err) => {
   console.error('Error en la actualización:', err);
+  // Si ocurre un error, cerrar la ventana de actualización y salir de la aplicación.
   if (updateWindow && !updateWindow.isDestroyed()) {
     updateWindow.close();
   }
+  app.quit(); // Asegurar que la aplicación se cierre en caso de error.
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  // Este manejador es típicamente para cuando todas las ventanas *principales* están cerradas.
+  // En este escenario de solo actualización, si la ventana de actualización se cierra, la aplicación debería salir.
+  // Con frame: false, el usuario no puede cerrarla directamente.
+  // autoUpdater.quitAndInstall() o app.quit() manejarán la salida.
+  if (process.platform !== 'darwin') app.quit(); // Mantener esto por robustez, aunque ahora es menos crítico.
 });
