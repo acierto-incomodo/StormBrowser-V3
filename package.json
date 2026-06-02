@@ -40,8 +40,6 @@
         "AppImage",
         "deb",
         "flatpak",
-        "snap",
-        "rpm",
         "pacman"
       ],
       "executableName": "storm-browser",
