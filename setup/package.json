@@ -39,7 +39,7 @@
       "createDesktopShortcut": true,
       "differentialPackage": true,
       "include": "installer.nsh",
-      "artifactName": "StormStore-Setup.${ext}"
+      "artifactName": "StormBrowser-Setup.${ext}"
     }
   },
   "devDependencies": {
