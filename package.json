@@ -30,8 +30,7 @@
     },
     "win": {
       "target": [
-        "nsis",
-        "msi"
+        "nsis"
       ],
       "icon": "renderer/assets/img/logo-256x256.ico"
     },
@@ -67,10 +66,6 @@
       "createDesktopShortcut": true,
       "differentialPackage": true,
       "include": "installer.nsh"
-    },
-    "msi": {
-      "oneClick": true,
-      "perMachine": true
     }
   },
   "devDependencies": {
