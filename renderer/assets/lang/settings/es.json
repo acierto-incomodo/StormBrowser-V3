@@ -17,6 +17,8 @@
   "privacy": "Privacidad",
   "ad_block": "Bloqueador de anuncios",
   "ad_block_desc": "Bloquea anuncios intrusivos y rastreadores para una mejor experiencia",
+  "history_new_tab": "Abrir historial en nueva pestaña",
+  "history_new_tab_desc": "Si está activado, al hacer clic en una entrada del historial se abrirá en una nueva pestaña (por defecto: activado)",
   "language": "Idioma",
   "language_desc": "Elige tu idioma preferido",
   "lang_name_native": "Español",

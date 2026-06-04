@@ -17,6 +17,8 @@
   "privacy": "Pribatutasuna",
   "ad_block": "Iragarki-blokeatzailea",
   "ad_block_desc": "Iragarki gogaitarriak eta jarraitzaileak blokeatu esperientzia garbiagoa izateko",
+  "history_new_tab": "Historialeko elementuak fitxa berrian irekitu",
+  "history_new_tab_desc": "Gaituta badago, historialeko elementu baten klikak fitxa berri batean irekiko du (defektuz: gaituta)",
   "language": "Hizkuntza",
   "language_desc": "Aukeratu zure hizkuntza gogokoena",
   "lang_name_native": "Euskara",

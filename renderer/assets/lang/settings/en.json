@@ -17,6 +17,8 @@
   "privacy": "Privacy",
   "ad_block": "Ad Block",
   "ad_block_desc": "Block intrusive ads and trackers for a cleaner experience",
+  "history_new_tab": "Open history entries in a new tab",
+  "history_new_tab_desc": "When enabled, clicking a history item opens it in a new tab (default: on)",
   "language": "Language",
   "language_desc": "Choose your preferred language",
   "lang_name_native": "English",
