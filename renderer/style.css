@@ -313,6 +313,7 @@ body {
   border-bottom: 1px solid var(--border);
 }
 #nav-controls {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -411,6 +412,7 @@ body {
   align-items: center;
   gap: 2px;
 }
+
 
 /* ─── CLOSE CONFIRM DIALOG ─────────────────────────────────────────────────── */
 #close-overlay {

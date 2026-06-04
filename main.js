@@ -6,6 +6,39 @@ const Store = require("electron-store").default;
 const { ElectronBlocker } = require("@ghostery/adblocker-electron");
 
 const store = new Store();
+const historyPath = path.join(app.getPath("userData"), "history.json");
+
+function ensureHistoryFile() {
+  try {
+    if (!fs.existsSync(historyPath)) {
+      fs.writeFileSync(historyPath, JSON.stringify([], null, 2), "utf8");
+    }
+  } catch (err) {
+    console.error("Failed to initialize history file:", err);
+  }
+}
+
+function readHistoryEntries() {
+  ensureHistoryFile();
+  try {
+    const raw = fs.readFileSync(historyPath, "utf8");
+    return JSON.parse(raw || "[]");
+  } catch (err) {
+    console.error("Failed to read history entries:", err);
+    return [];
+  }
+}
+
+function appendHistoryEntry(entry) {
+  if (!entry || !entry.url) return;
+  const history = readHistoryEntries();
+  history.unshift(entry);
+  try {
+    fs.writeFileSync(historyPath, JSON.stringify(history, null, 2), "utf8");
+  } catch (err) {
+    console.error("Failed to write history entries:", err);
+  }
+}
 
 let autoUpdater;
 try {
@@ -156,6 +189,10 @@ ipcMain.handle("list-locales", () => {
 // ─── IPC: Saved tabs ─────────────────────────────────────────────────────────
 ipcMain.handle("get-saved-tabs", () => store.get("saved-tabs", []));
 ipcMain.on("save-tabs", (_, tabs) => store.set("saved-tabs", tabs));
+ipcMain.handle("append-history-entry", (_, entry) => {
+  appendHistoryEntry(entry);
+});
+ipcMain.handle("get-history-entries", () => readHistoryEntries());
 
 // ─── IPC: Updater ────────────────────────────────────────────────────────────
 if (autoUpdater) {

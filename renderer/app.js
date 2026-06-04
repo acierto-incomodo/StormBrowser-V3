@@ -5,6 +5,7 @@ const path = require("path");
 // ─── Constants ────────────────────────────────────────────────────────────────
 const HOME_URL = "storm://newtab";
 const SETTINGS_URL = "storm://settings";
+const HISTORY_URL = "storm://history";
 const APP_VERSION = require("../package.json").version;
 const INFO_URL = "storm://info";
 const SEARCH_ENGINE = "https://www.google.com/search?q=";
@@ -39,6 +40,7 @@ const loadingSpinner = document.getElementById("loading-spinner");
 const btnBack = document.getElementById("btn-back");
 const btnForward = document.getElementById("btn-forward");
 const btnReload = document.getElementById("btn-reload");
+const btnHistory = document.getElementById("btn-history");
 const btnHome = document.getElementById("btn-home");
 const btnAdBlock = document.getElementById("btn-adblock");
 const btnSettings = document.getElementById("btn-settings");
@@ -134,6 +136,13 @@ window.addEventListener("message", (e) => {
     ipcRenderer.invoke("get-settings").then((s) => {
       settings = s;
     });
+  } else if (e.data?.type === "request-history") {
+    ipcRenderer.invoke("get-history-entries").then((entries) => {
+      const iframe = document.getElementById("history-page");
+      iframe?.contentWindow?.postMessage({ type: "history-data", entries }, "*");
+    });
+  } else if (e.data?.type === "open-history-url") {
+    createTab(e.data.url);
   } else if (e.data?.type === "navigate") {
     // Handle navigation requests from internal pages
     navigate(e.data.url);
@@ -223,12 +232,13 @@ function createTab(url = HOME_URL) {
 function tabTitleFor(url) {
   if (url === HOME_URL) return i18n.new_tab || "Nueva pestaña";
   if (url === SETTINGS_URL) return i18n.settings || "Configuración";
+  if (url === HISTORY_URL) return i18n.history || "Historial";
   if (url === INFO_URL) return i18n.about || "Acerca de StormBrowser";
   return url;
 }
 
 function isInternalUrl(url) {
-  return url === HOME_URL || url === SETTINGS_URL || url === INFO_URL;
+  return url === HOME_URL || url === SETTINGS_URL || url === HISTORY_URL || url === INFO_URL;
 }
 
 function renderTabEl(tab) {
@@ -306,17 +316,21 @@ function switchTab(id) {
 
   const isNew = tab.url === HOME_URL;
   const isSettings = tab.url === SETTINGS_URL;
+  const isHistory = tab.url === HISTORY_URL;
   const isInfo = tab.url === INFO_URL;
-  const isInternal = isNew || isSettings || isInfo;
+  const isInternal = isNew || isSettings || isHistory || isInfo;
 
   newTabPage.classList.toggle("hidden", !isNew);
 
   // Show/hide internal pages in webview-container
   document.getElementById("settings-page")?.remove();
   document.getElementById("info-page")?.remove();
+  document.getElementById("history-page")?.remove();
 
   if (isSettings)
     showInternalPage("settings-page", `StormGamesStudios/../settings.html`);
+  if (isHistory)
+    showInternalPage("history-page", `StormGamesStudios/../history.html`);
   if (isInfo) showInternalPage("info-page", `StormGamesStudios/info.html`);
 
   urlBar.value = isInternal ? "" : tab.url;
@@ -340,6 +354,11 @@ function showInternalPage(elId, src) {
   iframe.src = src;
   iframe.style.cssText =
     "position:absolute;inset:0;width:100%;height:100%;border:none;background:#0f0f13;";
+  iframe.addEventListener("load", () => {
+    if (elId === "history-page") {
+      sendHistoryToIframe();
+    }
+  });
   webviewContainer.appendChild(iframe);
 }
 
@@ -413,10 +432,57 @@ function getActiveTab() {
   return getTab(activeTabId);
 }
 
+function getWebContents(tab) {
+  return tab?.webview?.getWebContents?.() || null;
+}
+
+function getNavigationHistory(tab) {
+  const wc = getWebContents(tab);
+  if (!wc?.navigationHistory) return { entries: [], index: -1 };
+  return {
+    entries: wc.navigationHistory.getAllEntries() || [],
+    index: wc.navigationHistory.getActiveIndex(),
+  };
+}
+
+function refreshHistory(tab) {
+  if (!tab) return;
+  const { entries, index } = getNavigationHistory(tab);
+  tab.historyEntries = entries;
+  tab.historyIndex = index;
+}
+
+function goToHistoryIndex(tab, index) {
+  const wc = getWebContents(tab);
+  const history = wc?.navigationHistory;
+  if (!history) return;
+  if (index === history.getActiveIndex()) return;
+  const entries = history.getAllEntries();
+  if (index >= 0 && index < entries.length) {
+    history.goToIndex(index);
+  }
+}
+
 function saveTabs() {
   if (!settings.restoreTabs) return;
   const urls = tabs.map((t) => t.url); // Guardar todas las URLs, incluyendo HOME_URL
   ipcRenderer.send("save-tabs", urls);
+}
+
+function appendHistoryEntry(entry) {
+  if (!entry || !entry.url) return;
+  ipcRenderer.invoke("append-history-entry", entry);
+  if (document.getElementById("history-page")) {
+    sendHistoryToIframe();
+  }
+}
+
+function sendHistoryToIframe() {
+  const iframe = document.getElementById("history-page");
+  if (!iframe) return;
+  ipcRenderer.invoke("get-history-entries").then((entries) => {
+    iframe.contentWindow?.postMessage({ type: "history-data", entries }, "*");
+  });
 }
 
 // ─── Webview ──────────────────────────────────────────────────────────────────
@@ -444,7 +510,19 @@ function createWebview(tabId, url) {
     tab.loading = false;
     tab.canGoBack = wv.canGoBack();
     tab.canGoForward = wv.canGoForward();
+    const title = (wv.getTitle?.() || tab.title || tab.url).trim();
+    tab.title = title || tab.url;
     updateTabEl(tab);
+    refreshHistory(tab);
+
+    if (tab.url && !isInternalUrl(tab.url)) {
+      appendHistoryEntry({
+        title: tab.title || new URL(tab.url).hostname || tab.url,
+        url: tab.url,
+        date: new Date().toISOString(),
+      });
+    }
+
     if (tabId === activeTabId) {
       loadingSpinner.classList.add("hidden");
       setReloadIcon();
@@ -473,6 +551,7 @@ function createWebview(tabId, url) {
     tab.url = e.url;
     tab.canGoBack = wv.canGoBack();
     tab.canGoForward = wv.canGoForward();
+    refreshHistory(tab);
     if (tabId === activeTabId) {
       urlBar.value = e.url;
       updateNavButtons(tab);
@@ -487,6 +566,7 @@ function createWebview(tabId, url) {
     tab.url = e.url;
     tab.canGoBack = wv.canGoBack();
     tab.canGoForward = wv.canGoForward();
+    refreshHistory(tab);
     if (tabId === activeTabId) {
       urlBar.value = e.url;
       updateNavButtons(tab);
@@ -507,7 +587,7 @@ function navigate(url) {
   url = url.trim();
 
   let finalUrl;
-  if (url === HOME_URL || url === SETTINGS_URL || url === INFO_URL) {
+  if (url === HOME_URL || url === SETTINGS_URL || url === HISTORY_URL || url === INFO_URL) {
     finalUrl = url;
   } else if (/^https?:\/\//i.test(url)) {
     finalUrl = url;
@@ -622,6 +702,10 @@ btnForward.addEventListener("click", () => {
   const tab = getActiveTab();
   if (tab?.webview?.canGoForward()) tab.webview.goForward();
 });
+btnHistory.addEventListener("click", () => {
+  navigate(HISTORY_URL);
+});
+
 btnReload.addEventListener("click", () => {
   const tab = getActiveTab();
   if (!tab?.webview) return;

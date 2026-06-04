@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>History — StormBrowser</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background: #0f0f13;
+        color: #e8e8f0;
+        font-family: "Inter", system-ui, sans-serif;
+      }
+
+      body {
+        padding: 22px;
+      }
+
+      .page-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 18px;
+      }
+
+      #history-list {
+        display: grid;
+        gap: 12px;
+        overflow-y: auto;
+        max-height: calc(100vh - 80px);
+        padding-right: 4px;
+      }
+
+      .history-entry {
+        background: #17171f;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: grid;
+        gap: 6px;
+      }
+
+      .history-entry-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffffff;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .history-entry-url {
+        font-size: 12px;
+        color: #9ba1b8;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .history-entry-date {
+        font-size: 11px;
+        color: #7a7f95;
+      }
+
+      .history-entry a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .empty-state {
+        padding: 18px;
+        background: #17171f;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        color: #9ba1b8;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div class="page-title">Historial de navegación</div>
+      <div id="history-list">
+        <div class="empty-state">Cargando historial...</div>
+      </div>
+    </div>
+    <script>
+      function formatDate(iso) {
+        try {
+          const date = new Date(iso);
+          return date.toLocaleString();
+        } catch {
+          return iso;
+        }
+      }
+
+      function renderHistory(entries) {
+        const list = document.getElementById("history-list");
+        if (!entries || entries.length === 0) {
+          list.innerHTML = `<div class="empty-state">No hay entradas de historial.</div>`;
+          return;
+        }
+
+        list.innerHTML = entries
+          .map(
+            (entry) => `
+            <div class="history-entry" data-url="${escapeHtml(entry.url)}">
+              <div class="history-entry-title">${escapeHtml(entry.title || entry.url)}</div>
+              <div class="history-entry-url">${escapeHtml(entry.url)}</div>
+              <div class="history-entry-date">${formatDate(entry.date)}</div>
+            </div>`,
+          )
+          .join("");
+
+        list.querySelectorAll(".history-entry").forEach((item) => {
+          item.addEventListener("click", () => {
+            const url = item.dataset.url;
+            window.parent.postMessage({ type: "open-history-url", url }, "*");
+          });
+        });
+      }
+
+      function escapeHtml(text) {
+        return String(text)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      window.addEventListener("message", (event) => {
+        if (event.data?.type === "history-data") {
+          renderHistory(event.data.entries);
+        }
+      });
+
+      window.parent.postMessage({ type: "request-history" }, "*");
+    </script>
+  </body>
+</html>
