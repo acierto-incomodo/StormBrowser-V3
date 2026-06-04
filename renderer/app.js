@@ -142,7 +142,11 @@ window.addEventListener("message", (e) => {
       iframe?.contentWindow?.postMessage({ type: "history-data", entries }, "*");
     });
   } else if (e.data?.type === "open-history-url") {
-    createTab(e.data.url);
+    if (settings.historyNewTab ?? true) {
+      createTab(e.data.url);
+    } else {
+      navigate(e.data.url);
+    }
   } else if (e.data?.type === "navigate") {
     // Handle navigation requests from internal pages
     navigate(e.data.url);

@@ -163,6 +163,7 @@ ipcMain.handle("get-settings", () =>
     language: "auto",
     startMaximized: false,
     adBlock: true,
+    historyNewTab: true,
   }),
 );
 ipcMain.on("save-settings", (_, settings) => {

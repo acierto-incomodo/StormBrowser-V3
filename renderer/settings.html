@@ -390,6 +390,30 @@
           </label>
         </div>
 
+        <div class="setting-row">
+          <div class="setting-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M3 3h10v10H3V3zm3 3h4"
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="setting-text">
+            <div class="setting-title">Open history entries</div>
+            <div class="setting-desc">
+              Open a history item in a new tab by default, or use the current tab.
+            </div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-history-new-tab" checked />
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </label>
+        </div>
+
         <div class="setting-row" id="row-close-all" style="cursor: pointer">
           <div
             class="setting-icon"
@@ -647,6 +671,7 @@
         closeWarn: true,
         adBlock: true,
         language: "auto",
+        historyNewTab: true,
       };
 
       function loadSettings() {
@@ -682,6 +707,7 @@
       document.getElementById("toggle-splash").checked = s.splash;
       document.getElementById("toggle-restore-tabs").checked = s.restoreTabs;
       document.getElementById("toggle-close-warn").checked = s.closeWarn;
+      document.getElementById("toggle-history-new-tab").checked = s.historyNewTab ?? true;
       document.getElementById("toggle-maximized").checked = !!s.startMaximized;
       document.getElementById("toggle-adblock").checked = !!s.adBlock;
 
@@ -696,6 +722,7 @@
           splash: document.getElementById("toggle-splash").checked,
           restoreTabs: document.getElementById("toggle-restore-tabs").checked,
           closeWarn: document.getElementById("toggle-close-warn").checked,
+          historyNewTab: document.getElementById("toggle-history-new-tab").checked,
           language: document.getElementById("select-lang").value,
           startMaximized: document.getElementById("toggle-maximized").checked,
           adBlock: document.getElementById("toggle-adblock").checked,
@@ -710,6 +737,9 @@
         .addEventListener("change", onChange);
       document
         .getElementById("toggle-close-warn")
+        .addEventListener("change", onChange);
+      document
+        .getElementById("toggle-history-new-tab")
         .addEventListener("change", onChange);
       document
         .getElementById("select-lang")
