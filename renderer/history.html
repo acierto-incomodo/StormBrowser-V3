@@ -91,6 +91,51 @@
       </div>
     </div>
     <script>
+      const { ipcRenderer } = require("electron");
+      const fs = require("fs");
+      const path = require("path");
+
+      let i18n = {};
+
+      function getPreferredLanguage(settingsLanguage) {
+        if (settingsLanguage && settingsLanguage !== "auto") return settingsLanguage;
+
+        const sysLang = navigator.language || "en";
+        return sysLang.startsWith("es")
+          ? "es"
+          : sysLang.startsWith("eu")
+          ? "eu"
+          : "en";
+      }
+
+      async function loadLocale() {
+        try {
+          const settings = await ipcRenderer.invoke("get-settings");
+          const lang = getPreferredLanguage(settings.language);
+          const langFile = path.join(__dirname, "assets", "lang", "history", `${lang}.json`);
+          i18n = JSON.parse(fs.readFileSync(langFile, "utf8"));
+        } catch (e) {
+          console.error("History locale load error:", e);
+          i18n = {
+            history_title: "Browsing history",
+            history_loading: "Loading history...",
+            history_empty: "No history entries.",
+            history_page_title: "History — StormBrowser",
+          };
+        }
+
+        applyTranslations();
+      }
+
+      function applyTranslations() {
+        document.title = i18n.history_page_title || document.title;
+        document.querySelector(".page-title").textContent = i18n.history_title || "Browsing history";
+        const emptyState = document.querySelector(".empty-state");
+        if (emptyState) {
+          emptyState.textContent = i18n.history_loading || "Loading history...";
+        }
+      }
+
       function formatDate(iso) {
         try {
           const date = new Date(iso);
@@ -103,7 +148,7 @@
       function renderHistory(entries) {
         const list = document.getElementById("history-list");
         if (!entries || entries.length === 0) {
-          list.innerHTML = `<div class="empty-state">No hay entradas de historial.</div>`;
+          list.innerHTML = `<div class="empty-state">${escapeHtml(i18n.history_empty || "No history entries.")}</div>`;
           return;
         }
 
@@ -141,7 +186,9 @@
         }
       });
 
-      window.parent.postMessage({ type: "request-history" }, "*");
+      loadLocale().then(() => {
+        window.parent.postMessage({ type: "request-history" }, "*" );
+      });
     </script>
   </body>
 </html>
