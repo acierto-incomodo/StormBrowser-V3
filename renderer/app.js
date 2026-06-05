@@ -123,6 +123,11 @@ window.addEventListener("settings-changed", async () => {
   settings = await ipcRenderer.invoke("get-settings");
   await loadLocale();
 });
+ipcRenderer.on("context-menu-open-link-new-tab", (_event, url) => {
+  if (typeof url === "string" && url.trim()) {
+    createTab(url.trim());
+  }
+});
 // Also handle postMessage from settings webview
 window.addEventListener("message", (e) => {
   if (e.data?.type === "save-settings") {

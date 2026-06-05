@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, session } = require("electron");
+const { app, BrowserWindow, Menu, clipboard, ipcMain, session } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const Store = require("electron-store").default;
@@ -52,6 +52,26 @@ let splashWindow;
 let blocker;
 
 // ─── AdBlocker ────────────────────────────────────────────────────────────────
+function getSpellCheckerLanguages(language) {
+  if (!language || language === "auto") return [];
+  if (language.startsWith("en")) return ["en-US"];
+  if (language.startsWith("es")) return ["es-ES"];
+  if (language.startsWith("eu")) return ["eu"];
+  return [language];
+}
+
+function updateSpellCheckerLanguages(sessionInstance, language) {
+  if (!sessionInstance || process.platform === "darwin") return;
+  const languages = getSpellCheckerLanguages(language);
+  if (languages.length > 0) {
+    try {
+      sessionInstance.setSpellCheckerLanguages(languages);
+    } catch (err) {
+      console.error("Failed to set spellchecker languages:", err);
+    }
+  }
+}
+
 async function updateAdBlocker() {
   const settings = store.get("settings", { adBlock: true });
   if (settings.adBlock) {
@@ -101,6 +121,7 @@ function createMainWindow() {
       contextIsolation: false,
       webviewTag: true,
       sandbox: false,
+      spellcheck: true,
     },
     icon: path.join(__dirname, "renderer/assets/img/logo.svg"),
   });
@@ -146,6 +167,85 @@ function createMainWindow() {
   });
 }
 
+function showContextMenu(contents, params) {
+  const template = [];
+
+  if (params.dictionarySuggestions && params.dictionarySuggestions.length > 0) {
+    for (const suggestion of params.dictionarySuggestions.slice(0, 5)) {
+      template.push({
+        label: suggestion,
+        click: () => contents.replaceMisspelling(suggestion),
+      });
+    }
+    template.push({ type: "separator" });
+  }
+
+  if (params.misspelledWord) {
+    template.push({
+      label: "Add to Dictionary",
+      click: () => contents.session.addWordToSpellCheckerDictionary(params.misspelledWord),
+    });
+    template.push({ type: "separator" });
+  }
+
+  if (params.linkURL) {
+    template.push({
+      label: "Open Link in New Tab",
+      click: () => mainWindow?.webContents.send("context-menu-open-link-new-tab", params.linkURL),
+    });
+    template.push({
+      label: "Copy Link Address",
+      click: () => clipboard.writeText(params.linkURL || ""),
+    });
+  }
+
+  if (params.mediaType === "image" && params.srcURL) {
+    template.push({
+      label: "Open Image in New Tab",
+      click: () => mainWindow?.webContents.send("context-menu-open-link-new-tab", params.srcURL),
+    });
+    template.push({
+      label: "Copy Image Address",
+      click: () => clipboard.writeText(params.srcURL || ""),
+    });
+  }
+
+  if (template.length > 0) {
+    template.push({ type: "separator" });
+  }
+
+  if (params.isEditable) {
+    template.push(
+      { role: "undo" },
+      { role: "redo" },
+      { type: "separator" },
+      { role: "cut" },
+      { role: "copy" },
+      { role: "paste" },
+      { type: "separator" },
+      { role: "selectAll" },
+    );
+  } else {
+    template.push({ role: "copy" }, { role: "selectAll" });
+  }
+
+  template.push({ type: "separator" });
+  template.push({
+    label: "Inspect Element",
+    click: () => contents.inspectElement(params.x, params.y),
+  });
+
+  const menu = Menu.buildFromTemplate(template);
+  menu.popup({ window: BrowserWindow.fromWebContents(contents) || mainWindow });
+}
+
+app.on("web-contents-created", (_event, contents) => {
+  contents.on("context-menu", (_event, params) => {
+    if (contents === splashWindow?.webContents) return;
+    showContextMenu(contents, params);
+  });
+});
+
 // ─── IPC: Window controls ─────────────────────────────────────────────────────
 ipcMain.on("window-minimize", () => mainWindow?.minimize());
 ipcMain.on("window-maximize", () => {
@@ -171,6 +271,9 @@ ipcMain.on("save-settings", (_, settings) => {
   store.set("settings", settings);
   if (old?.adBlock !== settings.adBlock) {
     updateAdBlocker();
+  }
+  if (old?.language !== settings.language) {
+    updateSpellCheckerLanguages(mainWindow?.webContents?.session, settings.language);
   }
 });
 ipcMain.handle("get-app-locale", () => app.getLocale());
@@ -222,6 +325,9 @@ app.whenReady().then(() => {
   const settings = store.get("settings", { splash: true });
   if (settings.splash) createSplash();
   createMainWindow();
+  if (mainWindow?.webContents?.session) {
+    updateSpellCheckerLanguages(mainWindow.webContents.session, settings.language);
+  }
 });
 
 app.on("window-all-closed", () => {
