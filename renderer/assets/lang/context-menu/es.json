@@ -1,0 +1,14 @@
+{
+  "open_link_new_tab": "Abrir enlace en nueva pestaña",
+  "copy_link_address": "Copiar dirección del enlace",
+  "open_image_new_tab": "Abrir imagen en nueva pestaña",
+  "copy_image_address": "Copiar dirección de la imagen",
+  "add_to_dictionary": "Añadir al diccionario",
+  "undo": "Deshacer",
+  "redo": "Rehacer",
+  "cut": "Cortar",
+  "copy": "Copiar",
+  "paste": "Pegar",
+  "select_all": "Seleccionar todo",
+  "inspect_element": "Inspeccionar elemento"
+}

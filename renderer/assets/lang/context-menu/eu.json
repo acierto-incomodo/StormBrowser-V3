@@ -1,0 +1,14 @@
+{
+  "open_link_new_tab": "Esteka fitxa berrian ireki",
+  "copy_link_address": "Estekaren helbidea kopiatu",
+  "open_image_new_tab": "Irudia fitxa berrian ireki",
+  "copy_image_address": "Irudiaren helbidea kopiatu",
+  "add_to_dictionary": "Hiztegian gehitu",
+  "undo": "Desegin",
+  "redo": "Berregin",
+  "cut": "Ebaki",
+  "copy": "Kopiatu",
+  "paste": "Itsatsi",
+  "select_all": "Guztia hautatu",
+  "inspect_element": "Elementua ikuskatu"
+}

@@ -1,0 +1,14 @@
+{
+  "open_link_new_tab": "Open Link in New Tab",
+  "copy_link_address": "Copy Link Address",
+  "open_image_new_tab": "Open Image in New Tab",
+  "copy_image_address": "Copy Image Address",
+  "add_to_dictionary": "Add to Dictionary",
+  "undo": "Undo",
+  "redo": "Redo",
+  "cut": "Cut",
+  "copy": "Copy",
+  "paste": "Paste",
+  "select_all": "Select All",
+  "inspect_element": "Inspect Element"
+}

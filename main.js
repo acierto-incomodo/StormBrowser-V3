@@ -50,6 +50,39 @@ try {
 let mainWindow;
 let splashWindow;
 let blocker;
+let contextMenuI18n = {};
+
+// ─── Load context menu translations ────────────────────────────────────────────
+function loadContextMenuTranslations(language) {
+  try {
+    let lang = language;
+    if (!lang || lang === "auto") {
+      const sysLocale = app.getLocale() || "en";
+      lang = sysLocale.startsWith("es")
+        ? "es"
+        : sysLocale.startsWith("eu")
+        ? "eu"
+        : "en";
+    }
+    const langFile = path.join(__dirname, "renderer", "assets", "lang", "context-menu", `${lang}.json`);
+    if (fs.existsSync(langFile)) {
+      contextMenuI18n = JSON.parse(fs.readFileSync(langFile, "utf8"));
+    } else {
+      const fallbackFile = path.join(__dirname, "renderer", "assets", "lang", "context-menu", "en.json");
+      contextMenuI18n = JSON.parse(fs.readFileSync(fallbackFile, "utf8"));
+    }
+  } catch (err) {
+    console.error("Failed to load context menu translations:", err);
+    contextMenuI18n = {
+      open_link_new_tab: "Open Link in New Tab",
+      copy_link_address: "Copy Link Address",
+      open_image_new_tab: "Open Image in New Tab",
+      copy_image_address: "Copy Image Address",
+      add_to_dictionary: "Add to Dictionary",
+      inspect_element: "Inspect Element",
+    };
+  }
+}
 
 // ─── AdBlocker ────────────────────────────────────────────────────────────────
 function getSpellCheckerLanguages(language) {
@@ -182,7 +215,7 @@ function showContextMenu(contents, params) {
 
   if (params.misspelledWord) {
     template.push({
-      label: "Add to Dictionary",
+      label: contextMenuI18n.add_to_dictionary || "Add to Dictionary",
       click: () => contents.session.addWordToSpellCheckerDictionary(params.misspelledWord),
     });
     template.push({ type: "separator" });
@@ -190,22 +223,22 @@ function showContextMenu(contents, params) {
 
   if (params.linkURL) {
     template.push({
-      label: "Open Link in New Tab",
+      label: contextMenuI18n.open_link_new_tab || "Open Link in New Tab",
       click: () => mainWindow?.webContents.send("context-menu-open-link-new-tab", params.linkURL),
     });
     template.push({
-      label: "Copy Link Address",
+      label: contextMenuI18n.copy_link_address || "Copy Link Address",
       click: () => clipboard.writeText(params.linkURL || ""),
     });
   }
 
   if (params.mediaType === "image" && params.srcURL) {
     template.push({
-      label: "Open Image in New Tab",
+      label: contextMenuI18n.open_image_new_tab || "Open Image in New Tab",
       click: () => mainWindow?.webContents.send("context-menu-open-link-new-tab", params.srcURL),
     });
     template.push({
-      label: "Copy Image Address",
+      label: contextMenuI18n.copy_image_address || "Copy Image Address",
       click: () => clipboard.writeText(params.srcURL || ""),
     });
   }
@@ -216,22 +249,49 @@ function showContextMenu(contents, params) {
 
   if (params.isEditable) {
     template.push(
-      { role: "undo" },
-      { role: "redo" },
+      {
+        label: contextMenuI18n.undo || "Undo",
+        role: "undo",
+      },
+      {
+        label: contextMenuI18n.redo || "Redo",
+        role: "redo",
+      },
       { type: "separator" },
-      { role: "cut" },
-      { role: "copy" },
-      { role: "paste" },
+      {
+        label: contextMenuI18n.cut || "Cut",
+        role: "cut",
+      },
+      {
+        label: contextMenuI18n.copy || "Copy",
+        role: "copy",
+      },
+      {
+        label: contextMenuI18n.paste || "Paste",
+        role: "paste",
+      },
       { type: "separator" },
-      { role: "selectAll" },
+      {
+        label: contextMenuI18n.select_all || "Select All",
+        role: "selectAll",
+      },
     );
   } else {
-    template.push({ role: "copy" }, { role: "selectAll" });
+    template.push(
+      {
+        label: contextMenuI18n.copy || "Copy",
+        role: "copy",
+      },
+      {
+        label: contextMenuI18n.select_all || "Select All",
+        role: "selectAll",
+      },
+    );
   }
 
   template.push({ type: "separator" });
   template.push({
-    label: "Inspect Element",
+    label: contextMenuI18n.inspect_element || "Inspect Element",
     click: () => contents.inspectElement(params.x, params.y),
   });
 
@@ -273,6 +333,7 @@ ipcMain.on("save-settings", (_, settings) => {
     updateAdBlocker();
   }
   if (old?.language !== settings.language) {
+    loadContextMenuTranslations(settings.language);
     updateSpellCheckerLanguages(mainWindow?.webContents?.session, settings.language);
   }
 });
@@ -323,6 +384,7 @@ app.whenReady().then(() => {
   });
 
   const settings = store.get("settings", { splash: true });
+  loadContextMenuTranslations(settings.language);
   if (settings.splash) createSplash();
   createMainWindow();
   if (mainWindow?.webContents?.session) {
