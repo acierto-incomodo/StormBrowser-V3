@@ -3,12 +3,12 @@
         "name": "Extension Sample",
         "id": "extension-sample",
         "version": "v1.0.0",
-        "index": "main.loader"
+        "index": "extension.loader",
+        "fileSorces": "extension.sources"
     },
     "loader": {
         "version-loader": "v1",
-        "type": "general",
-        "icon": "source"
+        "type": "general"
     },
     "url": {
         "web1": "",
