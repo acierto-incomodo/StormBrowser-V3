@@ -2,13 +2,17 @@
     "extension": {
         "name": "Extension Sample",
         "id": "extension-sample",
-        "version": "v1.0.0"
+        "version": "v1.0.0",
+        "index": "main.loader"
     },
     "loader": {
         "version-loader": "v1",
-        "type": "general"
+        "type": "general",
+        "icon": "source"
     },
     "url": {
-        
+        "web1": "",
+        "web2": "",
+        "more...": ""
     }
 }
