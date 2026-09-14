@@ -5,6 +5,10 @@
         "version": "v1.0.0"
     },
     "loader": {
-        "version-loader": "v1"
+        "version-loader": "v1",
+        "type": "general"
+    },
+    "url": {
+        
     }
 }
