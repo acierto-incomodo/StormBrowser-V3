@@ -30,5 +30,6 @@
   "about_title": "About StormBrowser",
   "about_desc": "Version info and credits",
   "reset_btn": "Reset all settings to defaults",
-  "settings_saved": "Settings saved"
+  "settings_saved": "Settings saved",
+  "extensions": "Extensions"
 }

@@ -1,3 +1,4 @@
-1) Historial.
+1) Arreglar el historial para que se abra en otra ventana.
 2) Comprobar que funciona el Ad Block.
 3) Extensiones.
+4) Que abra archivos PDFs.

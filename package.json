@@ -69,12 +69,18 @@
     }
   },
   "devDependencies": {
+    "@eslint/compat": "^2.1.1",
+    "@eslint/js": "^10.0.1",
+    "@eslint/json": "^2.1.0",
     "electron": "^44.3.0",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "eslint": "^10.10.0",
+    "eslint-formatter-compact": "^9.0.1"
   },
   "dependencies": {
     "@ghostery/adblocker-electron": "^2.18.2",
     "@ghostery/adblocker-webextension": "^2.18.2",
+    "electron-chrome-extensions": "^4.9.0",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.8.9"
   }
