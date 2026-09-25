@@ -10,7 +10,7 @@
             position: fixed;
             top: 16px;
             left: 16px;
-            width: 32px;
+            width: auto;
             height: 32px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
@@ -19,6 +19,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 6px;
+            padding: 0 10px;
             cursor: pointer;
         }
         .back-button:hover {
@@ -32,9 +34,38 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
+        <span data-i18n="back">Back</span>
     </button>
-    <p>Extensiones</p>
+    <p data-i18n="extensions_title">Extension Manager</p>
     <script>
+        const fs = require("fs");
+        const path = require("path");
+
+        async function loadLocale() {
+            let settings = { language: "auto" };
+            try {
+                settings = JSON.parse(localStorage.getItem("storm-settings")) || settings;
+            } catch (e) {}
+
+            let lang = settings.language;
+            if (!lang || lang === "auto") {
+                const systemLanguage = await require("electron").ipcRenderer.invoke("get-app-locale");
+                lang = systemLanguage.startsWith("es") ? "es" : systemLanguage.startsWith("eu") ? "eu" : "en";
+            }
+
+            try {
+                const filePath = path.join(__dirname, "..", "assets", "lang", "extensions", `${lang}.json`);
+                const translations = JSON.parse(fs.readFileSync(filePath, "utf8"));
+                document.querySelectorAll("[data-i18n]").forEach((element) => {
+                    const key = element.getAttribute("data-i18n");
+                    if (translations[key]) element.textContent = translations[key];
+                });
+            } catch (e) {
+                console.error("Extensions locale error:", e);
+            }
+        }
+
+        loadLocale();
         document.getElementById("back-button").addEventListener("click", () => {
             window.parent.postMessage({ type: "navigate", url: "storm://settings" }, "*");
         });
