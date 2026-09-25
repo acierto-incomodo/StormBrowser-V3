@@ -8,7 +8,7 @@
     "start": "electron .",
     "clean": "if exist dist rd /s /q dist",
     "prebuild": "npm run clean",
-    "build": "electron-builder --win"
+    "build": "npm run prebuild && electron-builder --win"
   },
   "build": {
     "appId": "com.stormgamesstudios.stormbrowser",
@@ -43,7 +43,7 @@
     }
   },
   "devDependencies": {
-    "electron": "^44.4.5",
+    "electron": "44.4.5",
     "electron-builder": "^26.15.3"
   },
   "dependencies": {

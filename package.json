@@ -9,9 +9,9 @@
   "scripts": {
     "start": "npm run start --workspace=browser",
     "clean": "npm run clean --workspace=browser && npm run clean --workspace=setup",
-    "build:win": "npm run build:win --workspace=browser",
+    "build:win": "npm run build:win --workspace=browser && npm run build --workspace=setup",
     "build:linux": "npm run build:linux --workspace=browser",
-    "build:all": "npm run build:all --workspace=browser",
+    "build:all": "npm run build:all --workspace=browser && npm run build --workspace=setup",
     "build:setup": "npm run build --workspace=setup"
   },
   "repository": {
