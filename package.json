@@ -1,9 +1,10 @@
 {
   "name": "stormbrowser-v3",
   "version": "1.2.2",
-  "description": "StormBrowser - A modern browser by StormGamesStudios",
-  "main": "main.js",
-  "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
+  "description": "StormBrowser - A modern browser by StormGamesStudios","workspaces": [
+    "browser",
+    "setup"
+  ],
   "scripts": {
     "start": "electron .",
     "clean": "if exist dist rd /s /q dist",
@@ -12,78 +13,14 @@
     "build:linux": "prebuild && electron-builder --linux",
     "build:all": "prebuild && electron-builder --win --linux"
   },
-  "build": {
-    "appId": "com.stormgamesstudios.stormbrowser",
-    "productName": "StormBrowser",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "renderer/**/*"
-    ],
-    "publish": {
-      "provider": "github",
-      "owner": "acierto-incomodo",
-      "repo": "StormBrowser-V3"
-    },
-    "win": {
-      "target": [
-        "nsis"
-      ],
-      "icon": "renderer/assets/img/logo-256x256.ico"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb",
-        "flatpak",
-        "pacman"
-      ],
-      "executableName": "storm-browser",
-      "icon": "renderer/assets/img/logo.svg",
-      "category": "Network"
-    },
-    "flatpak": {
-      "runtime": "org.freedesktop.Platform",
-      "runtimeVersion": "23.08",
-      "sdk": "org.freedesktop.Sdk",
-      "finishArgs": [
-        "--share=ipc",
-        "--share=network",
-        "--socket=x11",
-        "--socket=wayland",
-        "--socket=pulseaudio",
-        "--device=dri",
-        "--filesystem=xdg-download"
-      ]
-    },
-    "nsis": {
-      "oneClick": true,
-      "allowToChangeInstallationDirectory": false,
-      "createStartMenuShortcut": true,
-      "createDesktopShortcut": true,
-      "differentialPackage": true,
-      "include": "installer.nsh"
-    }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acierto-incomodo/StormBrowser-V3.git"
   },
-  "devDependencies": {
-    "@eslint/compat": "^2.1.1",
-    "@eslint/js": "^10.0.1",
-    "@eslint/json": "^2.1.0",
-    "electron": "^44.3.0",
-    "electron-builder": "^26.15.3",
-    "eslint": "^10.10.0",
-    "eslint-formatter-compact": "^9.0.1"
+  "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/acierto-incomodo/StormBrowser-V3/issues"
   },
-  "dependencies": {
-    "@ghostery/adblocker-electron": "^2.18.2",
-    "@ghostery/adblocker-webextension": "^2.18.2",
-    "electron-chrome-context-menu": "^1.1.0",
-    "electron-chrome-extensions": "^4.9.0",
-    "electron-chrome-web-store": "^0.13.0",
-    "electron-store": "^11.0.2",
-    "electron-updater": "^6.8.9"
-  }
+  "homepage": "https://github.com/acierto-incomodo/StormBrowser-V3#readme"
 }
