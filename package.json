@@ -7,10 +7,10 @@
   "scripts": {
     "start": "electron .",
     "clean": "if exist dist rd /s /q dist",
-    "prebuild:win": "npm run clean",
-    "build:win": "electron-builder --win",
-    "build:linux": "electron-builder --linux",
-    "build:all": "electron-builder --win --linux"
+    "prebuild": "npm run clean",
+    "build:win": "prebuild && electron-builder --win",
+    "build:linux": "prebuild && electron-builder --linux",
+    "build:all": "prebuild && electron-builder --win --linux"
   },
   "build": {
     "appId": "com.stormgamesstudios.stormbrowser",
