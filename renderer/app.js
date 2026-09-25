@@ -8,6 +8,7 @@ const SETTINGS_URL = "storm://settings";
 const HISTORY_URL = "storm://history";
 const APP_VERSION = require("../package.json").version;
 const INFO_URL = "storm://info";
+const EXTENSIONS_URL = "storm://extensions";
 const SEARCH_ENGINE = "https://www.google.com/search?q=";
 
 const STORM_USER_AGENT = `Mozilla/5.0 (${process.platform === "darwin" ? "Macintosh; Intel Mac OS X 10_15_7" : process.platform === "linux" ? "X11; Linux x86_64" : "Windows NT 10.0; Win64; x64"}) AppleWebKit/537.36 (KHTML, like Gecko) StormBrowser/${APP_VERSION} Chrome/117.0.0.0 Safari/537.36`;
@@ -243,11 +244,18 @@ function tabTitleFor(url) {
   if (url === SETTINGS_URL) return i18n.settings || "Configuración";
   if (url === HISTORY_URL) return i18n.history || "Historial";
   if (url === INFO_URL) return i18n.about || "Acerca de StormBrowser";
+  if (url === EXTENSIONS_URL) return i18n.extensions || "Extensiones";
   return url;
 }
 
 function isInternalUrl(url) {
-  return url === HOME_URL || url === SETTINGS_URL || url === HISTORY_URL || url === INFO_URL;
+  return (
+    url === HOME_URL ||
+    url === SETTINGS_URL ||
+    url === HISTORY_URL ||
+    url === INFO_URL ||
+    url === EXTENSIONS_URL
+  );
 }
 
 function renderTabEl(tab) {
@@ -327,7 +335,8 @@ function switchTab(id) {
   const isSettings = tab.url === SETTINGS_URL;
   const isHistory = tab.url === HISTORY_URL;
   const isInfo = tab.url === INFO_URL;
-  const isInternal = isNew || isSettings || isHistory || isInfo;
+  const isExtensions = tab.url === EXTENSIONS_URL;
+  const isInternal = isNew || isSettings || isHistory || isInfo || isExtensions;
 
   newTabPage.classList.toggle("hidden", !isNew);
 
@@ -335,12 +344,14 @@ function switchTab(id) {
   document.getElementById("settings-page")?.remove();
   document.getElementById("info-page")?.remove();
   document.getElementById("history-page")?.remove();
+  document.getElementById("extensions-page")?.remove();
 
   if (isSettings)
     showInternalPage("settings-page", `StormGamesStudios/../settings.html`);
   if (isHistory)
     showInternalPage("history-page", `StormGamesStudios/../history.html`);
   if (isInfo) showInternalPage("info-page", `StormGamesStudios/info.html`);
+  if (isExtensions) showInternalPage("extensions-page", `Extra/extensions.html`);
 
   urlBar.value = isInternal ? "" : tab.url;
   updateNavButtons(tab);
@@ -596,7 +607,13 @@ function navigate(url) {
   url = url.trim();
 
   let finalUrl;
-  if (url === HOME_URL || url === SETTINGS_URL || url === HISTORY_URL || url === INFO_URL) {
+  if (
+    url === HOME_URL ||
+    url === SETTINGS_URL ||
+    url === HISTORY_URL ||
+    url === INFO_URL ||
+    url === EXTENSIONS_URL
+  ) {
     finalUrl = url;
   } else if (/^https?:\/\//i.test(url)) {
     finalUrl = url;
@@ -636,6 +653,8 @@ function navigate(url) {
   newTabPage.classList.add("hidden");
   document.getElementById("settings-page")?.remove();
   document.getElementById("info-page")?.remove();
+  document.getElementById("history-page")?.remove();
+  document.getElementById("extensions-page")?.remove();
 
   tab.url = finalUrl;
   urlBar.value = finalUrl;

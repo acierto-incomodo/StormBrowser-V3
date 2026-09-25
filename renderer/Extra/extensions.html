@@ -4,8 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Extensions - StormBrowser</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        .back-button {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            width: 32px;
+            height: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            background: #1e1e2a;
+            color: #8888a8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .back-button:hover {
+            color: #e8e8f0;
+            border-color: #6c8fff55;
+        }
+    </style>
 </head>
 <body>
+    <button class="back-button" id="back-button" title="Back" aria-label="Back">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
     <p>Extensiones</p>
+    <script>
+        document.getElementById("back-button").addEventListener("click", () => {
+            window.parent.postMessage({ type: "navigate", url: "storm://settings" }, "*");
+        });
+    </script>
 </body>
 </html>

@@ -33,6 +33,28 @@
 
     body { padding: 48px 0; display: flex; flex-direction: column; align-items: center; gap: 32px; }
 
+    .back-button {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .back-button:hover {
+      background: var(--accent-soft);
+      border-color: var(--border-focus);
+      color: var(--text-primary);
+    }
+
     /* Hero */
     .hero {
       display: flex; flex-direction: column; align-items: center; gap: 20px;
@@ -133,6 +155,12 @@
   </style>
 </head>
 <body>
+
+  <button class="back-button" id="back-button" title="Back" aria-label="Back">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
 
   <div class="hero">
     <div class="logo-ring">
@@ -250,6 +278,10 @@
     const { ipcRenderer } = require('electron');
     const fs = require('fs');
     const path = require('path');
+
+    document.getElementById('back-button').addEventListener('click', () => {
+      window.parent.postMessage({ type: 'navigate', url: 'storm://settings' }, '*');
+    });
 
     // ─── Localization ─────────────────────────────────────────────────────────
     async function loadLocale() {
