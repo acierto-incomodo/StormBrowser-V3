@@ -31,5 +31,7 @@
   "about_desc": "Bertsioaren informazioa, exekuzio xehetasunak eta kredituak",
   "reset_btn": "Ezarpen guztiak leheneratu",
   "settings_saved": "Ezarpenak gordeta",
-  "extensions": "Luzapenak"
+  "extensions": "Luzapenak",
+  "extensions_title": "Luzapenen Ezarpenak",
+  "extensions_desc": "Konfiguratu, instalatu eta desinstalatu luzapenak"
 }

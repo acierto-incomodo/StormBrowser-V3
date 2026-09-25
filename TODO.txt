@@ -2,3 +2,27 @@
 2) Comprobar que funciona el Ad Block.
 3) Extensiones.
 4) Que abra archivos PDFs.
+
+Mejoras prioritarias:
+5) Descargas: panel con progreso, cancelar, abrir archivo y mostrar carpeta.
+6) Marcadores: guardar páginas, organizarlas en carpetas y añadir un botón en la barra.
+7) Mejorar el historial: buscador, filtros por fecha, borrar entradas individuales y borrar todo.
+8) Restaurar automáticamente las pestañas después de cerrar el navegador.
+9) Pestañas fijadas y opción de duplicar pestaña.
+10) Menú de pestaña: silenciar, recargar, cerrar las demás y reabrir una pestaña cerrada.
+
+Mejoras de configuración y uso:
+11) Elegir el buscador predeterminado: Google, Bing, DuckDuckGo o Ecosia.
+12) Añadir modo oscuro, modo claro y temas personalizados.
+13) Hacer configurable la página de nueva pestaña: fondos, accesos rápidos y páginas frecuentes.
+14) Permitir configurar los atajos de teclado desde los ajustes.
+15) Añadir modo incógnito.
+16) Añadir traducción de páginas.
+17) Añadir capturas de pantalla de páginas.
+18) Añadir Picture-in-Picture para vídeos.
+
+Funciones avanzadas:
+19) Panel lateral para historial, marcadores o notas.
+20) Perfiles separados de usuario.
+21) Sincronizar marcadores y configuración.
+22) Mostrar estadísticas del Ad Block: anuncios y rastreadores bloqueados.

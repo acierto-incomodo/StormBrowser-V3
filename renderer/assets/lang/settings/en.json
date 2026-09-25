@@ -31,5 +31,7 @@
   "about_desc": "Version info and credits",
   "reset_btn": "Reset all settings to defaults",
   "settings_saved": "Settings saved",
-  "extensions": "Extensions"
+  "extensions": "Extensions",
+  "extensions_title": "Configure Extensions",
+  "extensions_desc": "Configure, install and uninstall extensions"
 }

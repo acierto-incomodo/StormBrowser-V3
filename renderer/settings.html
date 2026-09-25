@@ -569,10 +569,52 @@
 
     <!-- Extensions -->
      <div class="section">
-      <button class="" data-i18n="extensions">
-        Open Extensions
-      </button>
-     </div>
+      <div class="section-label" data-i18n="extensions">Extensions</div>
+      <div class="card">
+        <div class="setting-row" id="open-extensions-row" style="cursor: pointer">
+          <div class="setting-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle
+                cx="8"
+                cy="8"
+                r="6"
+                stroke="currentColor"
+                stroke-width="1.4"
+              />
+              <path
+                d="M8 7v4M8 5.5v.5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+          <div class="setting-text">
+            <div class="setting-title" data-i18n="extensions_title">
+              Configure Extensions
+            </div>
+            <div class="setting-desc" data-i18n="extensions_desc">
+              Configure, install and uninstall extensions
+            </div>
+          </div>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            style="color: var(--text-muted)"
+          >
+            <path
+              d="M5 3l4 4-4 4"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
 
     <!-- Reset -->
     <div class="section">
@@ -782,6 +824,19 @@
           );
         } catch {
           window.location.href = "../StormGamesStudios/info.html";
+        }
+      });
+
+      // Open extensions page
+      document.getElementById("open-extensions-row").addEventListener("click", () => {
+        // Post message to parent to trigger navigation
+        try {
+          window.parent.postMessage(
+            { type: "navigate", url: "storm://extensions" },
+            "*",
+          );
+        } catch {
+          window.location.href = "../extensions.html";
         }
       });
 

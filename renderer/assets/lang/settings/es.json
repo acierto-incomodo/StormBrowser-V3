@@ -31,5 +31,7 @@
   "about_desc": "Información de versión, detalles de ejecución y créditos",
   "reset_btn": "Restablecer todos los ajustes",
   "settings_saved": "Ajustes guardados",
-  "extensions": "Extensiones"
+  "extensions": "Extensiones",
+  "extensions_title": "Configurar Extensiones",
+  "extensions_desc": "Configurar, instalar and eliminar extensiones"
 }
