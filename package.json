@@ -5,13 +5,14 @@
     "browser",
     "setup"
   ],
+  "private": true,
   "scripts": {
-    "start": "electron .",
-    "clean": "if exist dist rd /s /q dist",
-    "prebuild": "npm run clean",
-    "build:win": "prebuild && electron-builder --win",
-    "build:linux": "prebuild && electron-builder --linux",
-    "build:all": "prebuild && electron-builder --win --linux"
+    "start": "npm run start --workspace=browser",
+    "clean": "npm run clean --workspace=browser && npm run clean --workspace=setup",
+    "build:win": "npm run build:win --workspace=browser",
+    "build:linux": "npm run build:linux --workspace=browser",
+    "build:all": "npm run build:all --workspace=browser",
+    "build:setup": "npm run build --workspace=setup"
   },
   "repository": {
     "type": "git",

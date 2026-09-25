@@ -1,5 +1,5 @@
 {
-  "name": "stormbrowser-v3",
+  "name": "stormbrowser-v3-browser",
   "version": "1.2.2",
   "description": "StormBrowser - A modern browser by StormGamesStudios",
   "main": "main.js",
