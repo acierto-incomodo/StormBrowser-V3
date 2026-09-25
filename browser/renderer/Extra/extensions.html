@@ -27,6 +27,15 @@
             color: #e8e8f0;
             border-color: #6c8fff55;
         }
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            color: #8888a8;
+        }
     </style>
 </head>
 <body>
@@ -36,7 +45,10 @@
         </svg>
         <span data-i18n="back">Back</span>
     </button>
-    <p data-i18n="extensions_title">Extension Manager</p>
+    <div class="content">
+    <h1 data-i18n="extensions_title">Extension Manager</h1>
+    <h2>On Development</h2>
+    </div>
     <script>
         const fs = require("fs");
         const path = require("path");
