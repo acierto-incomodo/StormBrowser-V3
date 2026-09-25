@@ -9,7 +9,7 @@
     "clean": "if exist dist rd /s /q dist",
     "prebuild": "npm run clean",
     "build:win": "npm run prebuild && electron-builder --win",
-    "build:linux": "npm run prebuild && electron-builder --linux",
+    "build:linux": "electron-builder --linux",
     "build:all": "npm run prebuild && electron-builder --win --linux"
   },
   "build": {
@@ -40,7 +40,6 @@
         "AppImage",
         "deb",
         "flatpak",
-        "pacman",
         "zip"
       ],
       "executableName": "storm-browser",
