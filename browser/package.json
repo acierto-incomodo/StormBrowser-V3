@@ -4,6 +4,7 @@
   "description": "StormBrowser - A modern browser by StormGamesStudios",
   "main": "main.js",
   "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
+  "homepage": "https://github.com/acierto-incomodo/StormBrowser-V3#readme",
   "scripts": {
     "start": "electron .",
     "clean": "if exist dist rd /s /q dist",
@@ -39,7 +40,6 @@
       "target": [
         "AppImage",
         "deb",
-        "flatpak",
         "zip"
       ],
       "executableName": "storm-browser",
