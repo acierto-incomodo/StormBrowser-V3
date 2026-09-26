@@ -39,7 +39,8 @@
     "linux": {
       "target": [
         "AppImage",
-        "deb"
+        "deb",
+        "zip"
       ],
       "executableName": "storm-browser",
       "icon": "renderer/assets/img/logo.svg",
