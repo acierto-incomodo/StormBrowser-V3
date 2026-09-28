@@ -45,7 +45,7 @@ try {
   autoUpdater = require("electron-updater").autoUpdater;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
-} catch (_) {}
+} catch (_) { }
 
 let mainWindow;
 let splashWindow;
@@ -61,8 +61,8 @@ function loadContextMenuTranslations(language) {
       lang = sysLocale.startsWith("es")
         ? "es"
         : sysLocale.startsWith("eu")
-        ? "eu"
-        : "en";
+          ? "eu"
+          : "en";
     }
     const langFile = path.join(__dirname, "renderer", "assets", "lang", "context-menu", `${lang}.json`);
     if (fs.existsSync(langFile)) {
@@ -316,17 +316,17 @@ ipcMain.handle("window-is-maximized", () => mainWindow?.isMaximized() ?? false);
 
 // ─── IPC: Settings ────────────────────────────────────────────────────────────
 ipcMain.handle("get-settings", () => ({
-    splash: true,
-    restoreTabs: false,
-    closeWarn: true,
-    language: "auto",
-    startMaximized: false,
-    adBlock: true,
-    searchEngine: "google",
-    historyNewTab: true,
-    aiEnabled: true,
-    ...store.get("settings", {}),
-  }));
+  splash: true,
+  restoreTabs: false,
+  closeWarn: true,
+  language: "auto",
+  startMaximized: false,
+  adBlock: true,
+  searchEngine: "google",
+  historyNewTab: true,
+  aiEnabled: true,
+  ...store.get("settings", {}),
+}));
 ipcMain.on("save-settings", (_, settings) => {
   const old = store.get("settings");
   store.set("settings", settings);

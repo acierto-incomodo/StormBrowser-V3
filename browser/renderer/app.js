@@ -961,11 +961,11 @@ ipcRenderer.on("update-progress", (e, p) => {
     const transferred = (p.transferred / 1048576).toFixed(1) + "MB";
     const total = (p.total / 1048576).toFixed(1) + "MB";
     const speed = (p.bytesPerSecond / 1048576).toFixed(1) + "MB/s";
-    
+
     let timeStr = "";
     if (p.bytesPerSecond > 0) {
       const seconds = Math.floor((p.total - p.transferred) / p.bytesPerSecond);
-      timeStr = seconds > 60 ? Math.floor(seconds/60) + "m" : seconds + "s";
+      timeStr = seconds > 60 ? Math.floor(seconds / 60) + "m" : seconds + "s";
     }
 
     updateBanner.textContent = (i18n.update_downloading || "Descargando: {percent}% ({transferred}/{total}) - {speed} - {time} restantes")

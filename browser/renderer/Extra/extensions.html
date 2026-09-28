@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,10 +24,12 @@
             padding: 0 10px;
             cursor: pointer;
         }
+
         .back-button:hover {
             color: #e8e8f0;
             border-color: #6c8fff55;
         }
+
         .content {
             display: flex;
             flex-direction: column;
@@ -38,16 +41,18 @@
         }
     </style>
 </head>
+
 <body>
     <button class="back-button" id="back-button" title="Back" aria-label="Back">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" />
         </svg>
         <span data-i18n="back">Back</span>
     </button>
     <div class="content">
-    <h1 data-i18n="extensions_title">Extension Manager</h1>
-    <h2>On Development</h2>
+        <h1 data-i18n="extensions_title">Extension Manager</h1>
+        <h2>On Development</h2>
     </div>
     <script>
         const fs = require("fs");
@@ -57,7 +62,7 @@
             let settings = { language: "auto" };
             try {
                 settings = JSON.parse(localStorage.getItem("storm-settings")) || settings;
-            } catch (e) {}
+            } catch (e) { }
 
             let lang = settings.language;
             if (!lang || lang === "auto") {
@@ -83,4 +88,5 @@
         });
     </script>
 </body>
+
 </html>

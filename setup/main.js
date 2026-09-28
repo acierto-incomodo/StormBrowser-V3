@@ -18,7 +18,7 @@ function loadTranslations() {
   const supported = ['en', 'es', 'eu'];
   const lang = supported.includes(locale) ? locale : 'en';
   const langPath = path.join(__dirname, 'renderer', 'assets', 'lang', 'update', `${lang}.json`);
-  
+
   try {
     if (fs.existsSync(langPath)) {
       translations = JSON.parse(fs.readFileSync(langPath, 'utf8'));
@@ -67,7 +67,7 @@ function createUpdateWindow() {
 
 app.on('ready', () => {
   loadTranslations();
-  
+
   // Comprobar si hay actualizaciones al iniciar
   autoUpdater.checkForUpdates();
 });
@@ -95,7 +95,7 @@ autoUpdater.on('update-downloaded', () => {
   if (updateWindow && !updateWindow.isDestroyed()) {
     updateWindow.webContents.send('update-finished');
   }
-  
+
   // Esperamos 3 segundos para que el usuario vea el estado final antes de reiniciar
   setTimeout(() => {
     autoUpdater.quitAndInstall();
