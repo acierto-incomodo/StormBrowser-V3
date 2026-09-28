@@ -26,5 +26,8 @@
   "bugs": {
     "url": "https://github.com/acierto-incomodo/StormBrowser-V3/issues"
   },
-  "homepage": "https://github.com/acierto-incomodo/StormBrowser-V3#readme"
+  "homepage": "https://github.com/acierto-incomodo/StormBrowser-V3#readme",
+  "allowScripts": {
+    "electron-winstaller@5.4.0": true
+  }
 }
