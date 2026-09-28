@@ -8,7 +8,8 @@
   ],
   "private": true,
   "scripts": {
-    "start": "npm run start --workspace=browser",
+    "start:browser": "npm run start --workspace=browser",
+    "start:extension-builder": "npm run start --workspace=extension-builder",
     "clean": "npm run clean --workspace=browser && npm run clean --workspace=setup",
     "build:win": "npm run build:win --workspace=browser && npm run build --workspace=setup",
     "build:linux": "npm run build:linux --workspace=browser",
