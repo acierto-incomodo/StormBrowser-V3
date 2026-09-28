@@ -800,17 +800,27 @@
       }
 
       // Init
-      const s = loadSettings();
-      document.getElementById("toggle-splash").checked = s.splash;
-      document.getElementById("toggle-restore-tabs").checked = s.restoreTabs;
-      document.getElementById("toggle-close-warn").checked = s.closeWarn;
-      document.getElementById("toggle-history-new-tab").checked = s.historyNewTab ?? true;
-      document.getElementById("toggle-maximized").checked = !!s.startMaximized;
-      document.getElementById("toggle-adblock").checked = !!s.adBlock;
-      document.getElementById("toggle-ai-enabled").checked = s.aiEnabled !== false;
-      document.getElementById("select-search-engine").value = s.searchEngine || "google";
-
       (async () => {
+        let currentSettings = loadSettings();
+        try {
+          currentSettings = {
+            ...DEFAULTS,
+            ...(await ipcRenderer.invoke("get-settings")),
+          };
+          localStorage.setItem("storm-settings", JSON.stringify(currentSettings));
+        } catch (error) {
+          console.error("Settings load error:", error);
+        }
+
+        document.getElementById("toggle-splash").checked = currentSettings.splash;
+        document.getElementById("toggle-restore-tabs").checked = currentSettings.restoreTabs;
+        document.getElementById("toggle-close-warn").checked = currentSettings.closeWarn;
+        document.getElementById("toggle-history-new-tab").checked = currentSettings.historyNewTab ?? true;
+        document.getElementById("toggle-maximized").checked = !!currentSettings.startMaximized;
+        document.getElementById("toggle-adblock").checked = !!currentSettings.adBlock;
+        document.getElementById("toggle-ai-enabled").checked = currentSettings.aiEnabled !== false;
+        document.getElementById("select-search-engine").value = currentSettings.searchEngine || "google";
+
         await loadLocale();
         await populateLocales();
       })();
@@ -868,6 +878,7 @@
           document.getElementById("toggle-splash").checked = !!s.splash;
           document.getElementById("toggle-restore-tabs").checked = !!s.restoreTabs;
           document.getElementById("toggle-close-warn").checked = !!s.closeWarn;
+          document.getElementById("toggle-history-new-tab").checked = s.historyNewTab ?? true;
           document.getElementById("toggle-ai-enabled").checked = s.aiEnabled !== false;
           document.getElementById("select-search-engine").value = s.searchEngine || "google";
         } else if (e.data?.type === "confirm-reset") {

@@ -174,6 +174,7 @@ window.addEventListener("message", async (e) => {
       iframe?.contentWindow?.postMessage({ type: "history-data", entries }, "*");
     });
   } else if (e.data?.type === "open-history-url") {
+    settings = await ipcRenderer.invoke("get-settings");
     if (settings.historyNewTab ?? true) {
       createTab(e.data.url);
     } else {
