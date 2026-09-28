@@ -446,18 +446,54 @@ body {
   font-weight: 500;
 }
 #ai-provider-select {
-  max-width: calc(100% - 44px);
-  padding: 5px 24px 5px 2px;
-  border: 0;
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  height: 28px;
+  padding: 0 24px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   outline: none;
-  background: transparent;
+  background: var(--bg-elevated);
   color: var(--text-primary);
   font: inherit;
+  font-size: 11px;
   cursor: pointer;
 }
 #ai-provider-select option {
   background: var(--bg-surface);
   color: var(--text-primary);
+}
+#btn-summarize-page {
+  height: 28px;
+  padding: 0 8px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+#btn-summarize-page:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+#btn-summarize-page:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+#ai-summary-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 #gemini-sidebar-content {
   position: absolute;
