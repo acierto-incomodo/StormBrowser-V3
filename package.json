@@ -3,7 +3,8 @@
   "version": "1.2.2",
   "description": "StormBrowser - A modern browser by StormGamesStudios","workspaces": [
     "browser",
-    "setup"
+    "setup",
+    "extension-builder"
   ],
   "private": true,
   "scripts": {
