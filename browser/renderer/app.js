@@ -343,7 +343,7 @@ function switchTab(id) {
     );
 
   document
-    .querySelectorAll("webview")
+    .querySelectorAll("webview[data-tab-id]")
     .forEach((wv) =>
       wv.classList.toggle("active", parseInt(wv.dataset.tabId) === id),
     );
