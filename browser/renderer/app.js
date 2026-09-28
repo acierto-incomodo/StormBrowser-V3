@@ -10,6 +10,14 @@ const APP_VERSION = require("../package.json").version;
 const INFO_URL = "storm://info";
 const EXTENSIONS_URL = "storm://extensions";
 const SEARCH_ENGINE = "https://www.google.com/search?q=";
+const AI_PROVIDER_URLS = {
+  gemini: "https://gemini.google.com/app",
+  chatgpt: "https://chatgpt.com/",
+  claude: "https://claude.ai/new",
+  copilot: "https://copilot.microsoft.com/",
+  perplexity: "https://www.perplexity.ai/",
+  deepseek: "https://chat.deepseek.com/",
+};
 
 const STORM_USER_AGENT = `Mozilla/5.0 (${process.platform === "darwin" ? "Macintosh; Intel Mac OS X 10_15_7" : process.platform === "linux" ? "X11; Linux x86_64" : "Windows NT 10.0; Win64; x64"}) AppleWebKit/537.36 (KHTML, like Gecko) StormBrowser/${APP_VERSION} Chrome/117.0.0.0 Safari/537.36`;
 
@@ -43,6 +51,11 @@ const btnForward = document.getElementById("btn-forward");
 const btnReload = document.getElementById("btn-reload");
 const btnHistory = document.getElementById("btn-history");
 const btnHome = document.getElementById("btn-home");
+const btnGemini = document.getElementById("btn-gemini");
+const btnGeminiClose = document.getElementById("btn-gemini-close");
+const geminiSidebar = document.getElementById("gemini-sidebar");
+const geminiSidebarContent = document.getElementById("gemini-sidebar-content");
+const aiProviderSelect = document.getElementById("ai-provider-select");
 const btnAdBlock = document.getElementById("btn-adblock");
 const btnSettings = document.getElementById("btn-settings");
 const ntpSearch = document.getElementById("ntp-search");
@@ -505,6 +518,26 @@ function sendHistoryToIframe() {
   });
 }
 
+function setGeminiSidebarOpen(open) {
+  geminiSidebar.classList.toggle("hidden", !open);
+  webviewContainer.classList.toggle("gemini-open", open);
+  newTabPage.classList.toggle("gemini-open", open);
+  btnGemini.classList.toggle("active", open);
+  btnGemini.setAttribute("aria-expanded", String(open));
+
+  if (open && !geminiSidebarContent.querySelector("webview")) {
+    const geminiWebview = document.createElement("webview");
+    geminiWebview.className = "active";
+    geminiWebview.setAttribute("useragent", STORM_USER_AGENT);
+    geminiWebview.setAttribute("allowpopups", "");
+    geminiWebview.src = AI_PROVIDER_URLS[aiProviderSelect.value];
+    geminiWebview.addEventListener("new-window", (event) => {
+      createTab(event.url);
+    });
+    geminiSidebarContent.appendChild(geminiWebview);
+  }
+}
+
 // ─── Webview ──────────────────────────────────────────────────────────────────
 function createWebview(tabId, url) {
   const wv = document.createElement("webview");
@@ -740,6 +773,15 @@ btnReload.addEventListener("click", () => {
   tab.loading ? tab.webview.stop() : tab.webview.reload();
 });
 btnHome.addEventListener("click", () => navigate(HOME_URL));
+btnGemini.addEventListener("click", () => {
+  setGeminiSidebarOpen(geminiSidebar.classList.contains("hidden"));
+});
+btnGeminiClose.addEventListener("click", () => setGeminiSidebarOpen(false));
+aiProviderSelect.addEventListener("change", () => {
+  const geminiWebview = geminiSidebarContent.querySelector("webview");
+  const providerUrl = AI_PROVIDER_URLS[aiProviderSelect.value];
+  if (geminiWebview && providerUrl) geminiWebview.loadURL(providerUrl);
+});
 btnAdBlock.addEventListener("click", () => toggleAdBlock());
 btnSettings.addEventListener("click", () => navigate(SETTINGS_URL));
 

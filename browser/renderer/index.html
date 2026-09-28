@@ -212,6 +212,11 @@
             />
           </svg>
         </button>
+        <button class="nav-btn" id="btn-gemini" title="Gemini" aria-label="Gemini" aria-expanded="false">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 2c.9 5.1 3.9 8.1 10 10-6.1 1.9-9.1 4.9-10 10-1.9-6.1-4.9-9.1-10-10 5.1-.9 8.1-3.9 10-10Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -220,6 +225,25 @@
 
     <!-- ── WEBVIEW CONTAINER ──────────────────────────────────────────────────── -->
     <div id="webview-container"></div>
+
+    <aside id="gemini-sidebar" class="hidden" aria-label="Gemini">
+      <div id="gemini-sidebar-header">
+        <select id="ai-provider-select" aria-label="Seleccionar asistente de IA">
+          <option value="gemini">Gemini</option>
+          <option value="chatgpt">ChatGPT</option>
+          <option value="claude">Claude</option>
+          <option value="copilot">Copilot</option>
+          <option value="perplexity">Perplexity</option>
+          <option value="deepseek">DeepSeek</option>
+        </select>
+        <button class="nav-btn" id="btn-gemini-close" title="Close Gemini" aria-label="Close Gemini">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M3 3l8 8M11 3 3 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+      <div id="gemini-sidebar-content"></div>
+    </aside>
 
     <!-- ── NEW TAB PAGE ───────────────────────────────────────────────────────── -->
     <div id="new-tab-page" class="hidden">

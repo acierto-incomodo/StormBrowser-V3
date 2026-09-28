@@ -413,6 +413,57 @@ body {
   gap: 2px;
 }
 
+#webview-container.gemini-open,
+#new-tab-page.gemini-open {
+  right: clamp(320px, 32vw, 440px);
+}
+#webview-container,
+#new-tab-page {
+  transition: right 0.18s ease;
+}
+#gemini-sidebar {
+  position: absolute;
+  top: calc(var(--titlebar-h) + var(--navbar-h));
+  right: 0;
+  bottom: 0;
+  width: clamp(320px, 32vw, 440px);
+  background: var(--bg-base);
+  border-left: 1px solid var(--border);
+  z-index: 2;
+}
+#gemini-sidebar.hidden {
+  display: none;
+}
+#gemini-sidebar-header {
+  height: 42px;
+  padding: 0 8px 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+}
+#ai-provider-select {
+  max-width: calc(100% - 44px);
+  padding: 5px 24px 5px 2px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+#ai-provider-select option {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+#gemini-sidebar-content {
+  position: absolute;
+  inset: 43px 0 0;
+}
+
 
 /* ─── CLOSE CONFIRM DIALOG ─────────────────────────────────────────────────── */
 #close-overlay {
