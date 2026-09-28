@@ -1,11 +1,290 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f0f13" />
+    <title>Creador de extensiones | StormBrowser</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0f0f13;
+            --surface: #17171f;
+            --raised: #1e1e2a;
+            --border: #ffffff12;
+            --text: #e8e8f0;
+            --muted: #8888a8;
+            --accent: #6c8fff;
+            --accent-hover: #83a0ff;
+            font-family: "Segoe UI", sans-serif;
+            font-size: 14px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-width: 360px;
+            min-height: 100vh;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .app-shell {
+            width: min(100% - 48px, 760px);
+            margin: 0 auto;
+            padding: 52px 0 40px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 36px;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 42px;
+            height: 42px;
+            place-items: center;
+            border: 1px solid #6c8fff45;
+            border-radius: 11px;
+            background: #6c8fff18;
+            color: var(--accent);
+            font-size: 21px;
+            font-weight: 700;
+        }
+
+        .brand-name {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .brand-caption {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 27px;
+            font-weight: 600;
+        }
+
+        .intro {
+            margin: 0 0 27px;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        form {
+            padding: 25px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface);
+        }
+
+        .fields {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(150px, 0.55fr);
+            gap: 19px 16px;
+        }
+
+        .field { min-width: 0; }
+        .field-wide { grid-column: 1 / -1; }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #c8c8d8;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            height: 42px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+            background: var(--raised);
+            color: var(--text);
+            font: inherit;
+            transition: border-color 140ms ease, box-shadow 140ms ease;
+        }
+
+        input:focus {
+            border-color: #6c8fff99;
+            box-shadow: 0 0 0 3px #6c8fff1c;
+        }
+
+        input::placeholder { color: #65657a; }
+
+        .field-hint {
+            margin: 7px 0 0;
+            color: #77778e;
+            font-size: 11px;
+        }
+
+        .form-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .status {
+            min-width: 0;
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+
+        .status[data-state="error"] { color: #ff8888; }
+        .status[data-state="success"] { color: #86d6ad; }
+
+        button {
+            display: inline-flex;
+            min-height: 40px;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 15px;
+            border: 0;
+            border-radius: 6px;
+            background: var(--accent);
+            color: #10121a;
+            cursor: pointer;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 140ms ease, transform 140ms ease;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        button:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+        button:disabled { cursor: wait; opacity: 0.7; }
+
+        @media (max-width: 560px) {
+            .app-shell { width: min(100% - 32px, 760px); padding-top: 32px; }
+            header { margin-bottom: 30px; }
+            form { padding: 18px; }
+            .fields { grid-template-columns: 1fr; }
+            .field-wide { grid-column: auto; }
+            .form-footer { align-items: stretch; flex-direction: column; }
+            button { width: 100%; }
+        }
+    </style>
 </head>
 <body>
-    
+    <main class="app-shell">
+        <header>
+            <div class="brand-mark" aria-hidden="true">S</div>
+            <div>
+                <p class="brand-name">StormBrowser</p>
+                <p class="brand-caption">Herramientas para desarrolladores</p>
+            </div>
+        </header>
+
+        <section aria-labelledby="page-title">
+            <h1 id="page-title">Creador de extensiones</h1>
+            <p class="intro">Prepara una estructura inicial para tu próxima extensión.</p>
+
+            <form id="extension-form">
+                <div class="fields">
+                    <div class="field field-wide">
+                        <label for="extension-name">Nombre de la extensión</label>
+                        <input id="extension-name" name="name" maxlength="60" placeholder="Mi extensión" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="extension-id">Identificador</label>
+                        <input id="extension-id" name="id" maxlength="60" pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="mi-extension" required />
+                        <p class="field-hint">Letras minúsculas, números y guiones.</p>
+                    </div>
+
+                    <div class="field">
+                        <label for="extension-version">Versión</label>
+                        <input id="extension-version" name="version" value="1.0.0" pattern="[0-9]+\.[0-9]+\.[0-9]+" required />
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                      <p class="status" id="status" role="status" aria-live="polite">Se generarán el proyecto fuente y el paquete de StormBrowser.</p>
+                    <button id="create-button" type="submit">
+                        <span aria-hidden="true">＋</span>
+                        Crear extensión
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        const { ipcRenderer } = require("electron");
+        const form = document.getElementById("extension-form");
+        const nameInput = document.getElementById("extension-name");
+        const idInput = document.getElementById("extension-id");
+        const createButton = document.getElementById("create-button");
+        const status = document.getElementById("status");
+
+        nameInput.addEventListener("input", () => {
+            if (idInput.dataset.edited === "true") return;
+            idInput.value = nameInput.value
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-|-$/g, "");
+        });
+
+        idInput.addEventListener("input", () => {
+            idInput.dataset.edited = "true";
+        });
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!form.reportValidity()) return;
+
+            status.dataset.state = "";
+            status.textContent = "Elige una carpeta para guardar el proyecto…";
+            createButton.disabled = true;
+
+            try {
+                const result = await ipcRenderer.invoke("create-extension", {
+                    name: nameInput.value,
+                    id: idInput.value,
+                    version: document.getElementById("extension-version").value,
+                });
+
+                if (!result) {
+                    status.textContent = "Creación cancelada.";
+                    return;
+                }
+
+                status.dataset.state = "success";
+                status.textContent = `Paquete: ${result.archive} | Proyecto: ${result.folder}`;
+            } catch (error) {
+                status.dataset.state = "error";
+                status.textContent = error.message || "No se pudo crear la extensión.";
+            } finally {
+                createButton.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>
