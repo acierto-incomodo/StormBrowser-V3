@@ -1,10 +1,7 @@
 const { app, BrowserWindow, dialog, ipcMain } = require("electron");
-const { execFile } = require("child_process");
+const archiver = require("archiver");
 const fs = require("fs");
 const path = require("path");
-const { promisify } = require("util");
-
-const execFileAsync = promisify(execFile);
 
 function createWindow() {
 	const window = new BrowserWindow({
@@ -152,15 +149,23 @@ h1 {
 		),
 	);
 
-	const sevenZipPath = path.join(__dirname, "extraFiles", "7zip", "7za.exe");
 	try {
-		await execFileAsync(
-			sevenZipPath,
-			["a", "-tzip", "-mx=9", archivePath, id],
-			{ cwd: selection.filePaths[0], windowsHide: true },
+		await new Promise((resolve, reject) => {
+			const output = fs.createWriteStream(archivePath);
+			const archive = archiver("zip", { zlib: { level: 9 } });
+
+			output.once("close", resolve);
+			output.once("error", reject);
+			archive.once("error", reject);
+			archive.pipe(output);
+			archive.directory(root, id);
+			archive.finalize().catch(reject);
+		});
+	} catch (error) {
+		await fs.promises.rm(archivePath, { force: true });
+		throw new Error(
+			`No se pudo empaquetar. El proyecto fuente está en ${root}. ${error.message}`,
 		);
-	} catch {
-		throw new Error(`No se pudo empaquetar. El proyecto fuente está en ${root}.`);
 	}
 
 	return { folder: root, archive: archivePath };

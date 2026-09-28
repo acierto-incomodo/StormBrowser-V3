@@ -10,10 +10,10 @@
   "scripts": {
     "start:browser": "npm run start --workspace=browser",
     "start:extension-builder": "npm run start --workspace=extension-builder",
-    "clean": "npm run clean --workspace=browser && npm run clean --workspace=setup",
-    "build:win": "npm run build:win --workspace=browser && npm run build --workspace=setup",
+    "clean": "npm run clean --workspace=browser && npm run clean --workspace=setup && npm run clean --workspace=extension-builder",
+    "build:win": "npm run build:win --workspace=browser && npm run build --workspace=setup && npm run build --workspace=extension-builder",
     "build:linux": "npm run build:linux --workspace=browser",
-    "build:all": "npm run build:all --workspace=browser && npm run build --workspace=setup",
+    "build:all": "npm run build:all --workspace=browser && npm run build --workspace=setup && npm run build --workspace=extension-builder",
     "build:setup": "npm run build --workspace=setup"
   },
   "repository": {

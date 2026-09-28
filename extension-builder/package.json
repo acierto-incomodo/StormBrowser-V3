@@ -1,10 +1,19 @@
 {
   "name": "stormbrowser-v3-extension-builder",
   "version": "1.0.0",
-  "description": "",
+  "description": "Crea y empaqueta extensiones para StormBrowser.",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run build:win",
+    "build:exe": "npm run clean && electron-builder --win nsis",
+    "build:zip": "npm run clean && electron-builder --win zip",
+    "build:deb": "npm run clean && electron-builder --linux deb",
+    "build:appimage": "npm run clean && electron-builder --linux AppImage",
+    "build:win": "npm run clean && electron-builder --win",
+    "build:linux": "npm run clean && electron-builder --linux",
+    "build:all": "npm run clean && electron-builder --win --linux"
   },
   "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
   "license": "ISC",
@@ -13,6 +22,28 @@
     "electron-builder": "^26.15.3"
   },
   "dependencies": {
+    "archiver": "^7.0.1",
     "electron-updater": "^6.8.9"
+  },
+  "build": {
+    "appId": "com.stormgamesstudios.stormbrowser.extensionbuilder",
+    "productName": "StormBrowser Extension Builder",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": ["nsis", "zip"]
+    },
+    "linux": {
+      "target": ["deb", "AppImage"],
+      "executableName": "stormbrowser-extension-builder",
+      "category": "Development"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }
