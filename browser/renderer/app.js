@@ -145,14 +145,19 @@ ipcRenderer.on("context-menu-open-link-new-tab", (_event, url) => {
   }
 });
 // Also handle postMessage from settings webview
-window.addEventListener("message", (e) => {
+window.addEventListener("message", async (e) => {
   if (e.data?.type === "save-settings") {
     // Save settings to main process and update local state
     const langChanged = settings.language !== e.data.settings.language;
     ipcRenderer.send("save-settings", e.data.settings);
     settings = e.data.settings;
     updateAdBlockUI();
-    if (langChanged) location.reload();
+    if (langChanged) {
+      await loadLocale();
+      document
+        .getElementById("settings-page")
+        ?.contentWindow?.postMessage({ type: "reload-locale" }, "*");
+    }
   } else if (e.data?.type === "settings-changed") {
     ipcRenderer.invoke("get-settings").then((s) => {
       settings = s;

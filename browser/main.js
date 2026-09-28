@@ -86,17 +86,17 @@ function loadContextMenuTranslations(language) {
 
 // ─── AdBlocker ────────────────────────────────────────────────────────────────
 function getSpellCheckerLanguages(language) {
-  if (!language || language === "auto") return [];
+  if (!language || language === "auto") return null;
   if (language.startsWith("en")) return ["en-US"];
   if (language.startsWith("es")) return ["es-ES"];
-  if (language.startsWith("eu")) return ["eu"];
+  if (language.startsWith("eu")) return [];
   return [language];
 }
 
 function updateSpellCheckerLanguages(sessionInstance, language) {
   if (!sessionInstance || process.platform === "darwin") return;
   const languages = getSpellCheckerLanguages(language);
-  if (languages.length > 0) {
+  if (languages !== null) {
     try {
       sessionInstance.setSpellCheckerLanguages(languages);
     } catch (err) {

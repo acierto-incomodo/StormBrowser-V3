@@ -801,7 +801,9 @@
         .addEventListener("change", onChange);
 
       window.addEventListener("message", async (e) => {
-        if (e.data?.type === "settings-changed") {
+        if (e.data?.type === "reload-locale") {
+          location.reload();
+        } else if (e.data?.type === "settings-changed") {
           const s = await ipcRenderer.invoke("get-settings");
           localStorage.setItem("storm-settings", JSON.stringify(s));
           document.getElementById("toggle-adblock").checked = !!s.adBlock;
