@@ -9,7 +9,12 @@ const HISTORY_URL = "storm://history";
 const APP_VERSION = require("../package.json").version;
 const INFO_URL = "storm://info";
 const EXTENSIONS_URL = "storm://extensions";
-const SEARCH_ENGINE = "https://www.google.com/search?q=";
+const SEARCH_ENGINES = {
+  google: "https://www.google.com/search?q=",
+  bing: "https://www.bing.com/search?q=",
+  duckduckgo: "https://duckduckgo.com/?q=",
+  ecosia: "https://www.ecosia.org/search?q=",
+};
 const AI_PROVIDER_URLS = {
   gemini: "https://gemini.google.com/app",
   chatgpt: "https://chatgpt.com/",
@@ -775,7 +780,8 @@ function navigate(url) {
   } else if (/^[\w-]+(\.\w{2,})(\/.*)?$/.test(url) && !url.includes(" ")) {
     finalUrl = "https://" + url;
   } else {
-    finalUrl = SEARCH_ENGINE + encodeURIComponent(url);
+    const searchUrl = SEARCH_ENGINES[settings.searchEngine] || SEARCH_ENGINES.google;
+    finalUrl = searchUrl + encodeURIComponent(url);
   }
 
   const tab = getActiveTab();

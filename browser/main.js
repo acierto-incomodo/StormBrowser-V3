@@ -322,6 +322,7 @@ ipcMain.handle("get-settings", () => ({
     language: "auto",
     startMaximized: false,
     adBlock: true,
+    searchEngine: "google",
     historyNewTab: true,
     aiEnabled: true,
     ...store.get("settings", {}),

@@ -455,6 +455,31 @@
       </div>
     </div>
 
+    <!-- Search -->
+    <div class="section">
+      <div class="section-label" data-i18n="search">Search</div>
+      <div class="card">
+        <div class="setting-row">
+          <div class="setting-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4" />
+              <path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div class="setting-text">
+            <div class="setting-title" data-i18n="search_engine">Search engine</div>
+            <div class="setting-desc" data-i18n="search_engine_desc">Choose the search engine used for web searches</div>
+          </div>
+          <select id="select-search-engine" class="setting-select">
+            <option value="google">Google</option>
+            <option value="bing">Bing</option>
+            <option value="duckduckgo">DuckDuckGo</option>
+            <option value="ecosia">Ecosia</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <!-- Artificial Intelligence -->
     <div class="section">
       <div class="section-label" data-i18n="ai_assistant">AI Assistant</div>
@@ -746,6 +771,7 @@
         aiEnabled: true,
         language: "auto",
         historyNewTab: true,
+        searchEngine: "google",
       };
 
       function loadSettings() {
@@ -782,6 +808,7 @@
       document.getElementById("toggle-maximized").checked = !!s.startMaximized;
       document.getElementById("toggle-adblock").checked = !!s.adBlock;
       document.getElementById("toggle-ai-enabled").checked = s.aiEnabled !== false;
+      document.getElementById("select-search-engine").value = s.searchEngine || "google";
 
       (async () => {
         await loadLocale();
@@ -799,6 +826,7 @@
           startMaximized: document.getElementById("toggle-maximized").checked,
           adBlock: document.getElementById("toggle-adblock").checked,
           aiEnabled: document.getElementById("toggle-ai-enabled").checked,
+          searchEngine: document.getElementById("select-search-engine").value,
         });
       }
 
@@ -826,6 +854,9 @@
       document
         .getElementById("toggle-ai-enabled")
         .addEventListener("change", onChange);
+      document
+        .getElementById("select-search-engine")
+        .addEventListener("change", onChange);
 
       window.addEventListener("message", async (e) => {
         if (e.data?.type === "reload-locale") {
@@ -838,6 +869,7 @@
           document.getElementById("toggle-restore-tabs").checked = !!s.restoreTabs;
           document.getElementById("toggle-close-warn").checked = !!s.closeWarn;
           document.getElementById("toggle-ai-enabled").checked = s.aiEnabled !== false;
+          document.getElementById("select-search-engine").value = s.searchEngine || "google";
         } else if (e.data?.type === "confirm-reset") {
           localStorage.setItem("storm-settings", JSON.stringify({ ...DEFAULTS }));
           location.reload();
