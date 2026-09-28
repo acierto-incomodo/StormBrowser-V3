@@ -439,16 +439,17 @@ body {
   padding: 0 8px 0 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   border-bottom: 1px solid var(--border);
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 500;
 }
 #ai-provider-select {
-  flex: 1;
+  flex: 0 1 112px;
   min-width: 0;
-  max-width: none;
+  width: 112px;
+  max-width: 112px;
   height: 28px;
   padding: 0 24px 0 8px;
   border: 1px solid var(--border);
@@ -467,7 +468,8 @@ body {
 #btn-summarize-page {
   height: 28px;
   padding: 0 8px;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
