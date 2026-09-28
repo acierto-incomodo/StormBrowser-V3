@@ -315,8 +315,7 @@ ipcMain.on("window-close", () => mainWindow?.close());
 ipcMain.handle("window-is-maximized", () => mainWindow?.isMaximized() ?? false);
 
 // ─── IPC: Settings ────────────────────────────────────────────────────────────
-ipcMain.handle("get-settings", () =>
-  store.get("settings", {
+ipcMain.handle("get-settings", () => ({
     splash: true,
     restoreTabs: false,
     closeWarn: true,
@@ -324,8 +323,9 @@ ipcMain.handle("get-settings", () =>
     startMaximized: false,
     adBlock: true,
     historyNewTab: true,
-  }),
-);
+    aiEnabled: true,
+    ...store.get("settings", {}),
+  }));
 ipcMain.on("save-settings", (_, settings) => {
   const old = store.get("settings");
   store.set("settings", settings);

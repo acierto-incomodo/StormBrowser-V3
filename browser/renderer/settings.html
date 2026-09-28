@@ -455,6 +455,30 @@
       </div>
     </div>
 
+    <!-- Artificial Intelligence -->
+    <div class="section">
+      <div class="section-label" data-i18n="ai_assistant">AI Assistant</div>
+      <div class="card">
+        <div class="setting-row">
+          <div class="setting-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2c.9 5.1 3.9 8.1 10 10-6.1 1.9-9.1 4.9-10 10-1.9-6.1-4.9-9.1-10-10 5.1-.9 8.1-3.9 10-10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div class="setting-text">
+            <div class="setting-title" data-i18n="ai_enabled">Enable AI assistant</div>
+            <div class="setting-desc" data-i18n="ai_enabled_desc">
+              Show the AI sidebar and allow AI-assisted page summaries
+            </div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-ai-enabled" checked />
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </label>
+        </div>
+      </div>
+    </div>
+
     <!-- Privacy -->
     <div class="section">
       <div class="section-label" data-i18n="privacy">Privacy</div>
@@ -719,17 +743,15 @@
         restoreTabs: false,
         closeWarn: true,
         adBlock: true,
+        aiEnabled: true,
         language: "auto",
         historyNewTab: true,
       };
 
       function loadSettings() {
         try {
-          return (
-            JSON.parse(localStorage.getItem("storm-settings") || "null") || {
-              ...DEFAULTS,
-            }
-          );
+          const stored = JSON.parse(localStorage.getItem("storm-settings") || "null");
+          return { ...DEFAULTS, ...(stored || {}) };
         } catch {
           return { ...DEFAULTS };
         }
@@ -759,6 +781,7 @@
       document.getElementById("toggle-history-new-tab").checked = s.historyNewTab ?? true;
       document.getElementById("toggle-maximized").checked = !!s.startMaximized;
       document.getElementById("toggle-adblock").checked = !!s.adBlock;
+      document.getElementById("toggle-ai-enabled").checked = s.aiEnabled !== false;
 
       (async () => {
         await loadLocale();
@@ -775,6 +798,7 @@
           language: document.getElementById("select-lang").value,
           startMaximized: document.getElementById("toggle-maximized").checked,
           adBlock: document.getElementById("toggle-adblock").checked,
+          aiEnabled: document.getElementById("toggle-ai-enabled").checked,
         });
       }
 
@@ -799,6 +823,9 @@
       document
         .getElementById("toggle-adblock")
         .addEventListener("change", onChange);
+      document
+        .getElementById("toggle-ai-enabled")
+        .addEventListener("change", onChange);
 
       window.addEventListener("message", async (e) => {
         if (e.data?.type === "reload-locale") {
@@ -810,6 +837,7 @@
           document.getElementById("toggle-splash").checked = !!s.splash;
           document.getElementById("toggle-restore-tabs").checked = !!s.restoreTabs;
           document.getElementById("toggle-close-warn").checked = !!s.closeWarn;
+          document.getElementById("toggle-ai-enabled").checked = s.aiEnabled !== false;
         } else if (e.data?.type === "confirm-reset") {
           localStorage.setItem("storm-settings", JSON.stringify({ ...DEFAULTS }));
           location.reload();

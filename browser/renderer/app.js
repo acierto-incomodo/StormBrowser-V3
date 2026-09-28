@@ -74,6 +74,7 @@ let dialogAction = null; // Para saber qué hacer al confirmar el diálogo
 async function init() {
   // Load settings from main process (electron-store)
   settings = await ipcRenderer.invoke("get-settings");
+  updateAIUI();
   await loadLocale();
 
   // Restore tabs or open a new one
@@ -152,6 +153,7 @@ window.addEventListener("message", async (e) => {
     ipcRenderer.send("save-settings", e.data.settings);
     settings = e.data.settings;
     updateAdBlockUI();
+    updateAIUI();
     if (langChanged) {
       await loadLocale();
       document
@@ -159,9 +161,8 @@ window.addEventListener("message", async (e) => {
         ?.contentWindow?.postMessage({ type: "reload-locale" }, "*");
     }
   } else if (e.data?.type === "settings-changed") {
-    ipcRenderer.invoke("get-settings").then((s) => {
-      settings = s;
-    });
+    settings = await ipcRenderer.invoke("get-settings");
+    updateAIUI();
   } else if (e.data?.type === "request-history") {
     ipcRenderer.invoke("get-history-entries").then((entries) => {
       const iframe = document.getElementById("history-page");
@@ -526,6 +527,8 @@ function sendHistoryToIframe() {
 }
 
 function setGeminiSidebarOpen(open) {
+  if (open && settings.aiEnabled === false) return;
+
   geminiSidebar.classList.toggle("hidden", !open);
   webviewContainer.classList.toggle("gemini-open", open);
   newTabPage.classList.toggle("gemini-open", open);
@@ -543,6 +546,12 @@ function setGeminiSidebarOpen(open) {
     });
     geminiSidebarContent.appendChild(geminiWebview);
   }
+}
+
+function updateAIUI() {
+  const enabled = settings.aiEnabled !== false;
+  btnGemini.disabled = !enabled;
+  if (!enabled) setGeminiSidebarOpen(false);
 }
 
 async function summarizeActivePage() {
