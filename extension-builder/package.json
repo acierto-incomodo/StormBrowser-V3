@@ -18,11 +18,11 @@
   "author": "StormGamesStudios <meliodas.aitor@gmail.com>",
   "license": "ISC",
   "devDependencies": {
-    "electron": "44.4.5",
+    "electron": "44.5.1",
     "electron-builder": "^26.15.3"
   },
   "dependencies": {
-    "archiver": "^7.0.1",
+    "archiver": "^8.0.0",
     "electron-updater": "^6.8.9"
   },
   "build": {

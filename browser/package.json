@@ -74,7 +74,7 @@
     "@eslint/compat": "^2.1.1",
     "@eslint/js": "^10.0.1",
     "@eslint/json": "^2.1.0",
-    "electron": "44.4.5",
+    "electron": "44.5.1",
     "electron-builder": "^26.15.3",
     "eslint": "^10.11.0",
     "eslint-formatter-compact": "^9.0.1"
