@@ -2,6 +2,7 @@
     "extension": {
         "name": "Background Sample",
         "id": "Background-sample",
+        "author": "StormGamesStudios",
         "version": "v1.0.0",
         "icons": "icons/icon.png"
     },

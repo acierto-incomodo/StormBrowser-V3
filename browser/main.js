@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Menu, clipboard, ipcMain, session } = require("electron");
 const path = require("path");
 const fs = require("fs");
+const { pathToFileURL } = require("url");
 const Store = require("electron-store").default;
 
 const { ElectronBlocker } = require("@ghostery/adblocker-electron");
@@ -15,6 +16,171 @@ const welcomeSettingsPath = path.join(
   "settings",
   "welcome.settings",
 );
+const extensionsDirectory = path.join(
+  path.dirname(path.dirname(welcomeSettingsPath)),
+  "extensions",
+);
+
+function ensureAppDirectories() {
+  fs.mkdirSync(path.dirname(welcomeSettingsPath), { recursive: true });
+  fs.mkdirSync(extensionsDirectory, { recursive: true });
+}
+
+function getInstalledExtensions() {
+  ensureAppDirectories();
+  return fs
+    .readdirSync(extensionsDirectory, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => {
+      const folderPath = path.join(extensionsDirectory, entry.name);
+      try {
+        const manifest = JSON.parse(
+          fs.readFileSync(path.join(folderPath, "extension.json"), "utf8"),
+        );
+        const metadata = manifest?.extension;
+        if (
+          !metadata ||
+          typeof metadata.name !== "string" ||
+          typeof metadata.id !== "string"
+        ) {
+          throw new Error("El manifiesto debe incluir el nombre y el ID de la extensión.");
+        }
+
+        const iconPath =
+          typeof metadata.icons === "string"
+            ? path.resolve(folderPath, metadata.icons)
+            : "";
+        const iconRelativePath = iconPath ? path.relative(folderPath, iconPath) : "";
+        let icon = "";
+        if (
+          iconPath &&
+          iconRelativePath &&
+          !iconRelativePath.startsWith(`..${path.sep}`) &&
+          iconRelativePath !== ".." &&
+          !path.isAbsolute(iconRelativePath) &&
+          fs.existsSync(iconPath) &&
+          fs.statSync(iconPath).isFile() &&
+          fs.statSync(iconPath).size <= 1024 * 1024
+        ) {
+          const mimeTypes = {
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".gif": "image/gif",
+            ".webp": "image/webp",
+          };
+          const mimeType = mimeTypes[path.extname(iconPath).toLowerCase()];
+          if (mimeType) {
+            icon = `data:${mimeType};base64,${fs.readFileSync(iconPath).toString("base64")}`;
+          }
+        }
+
+        return {
+          name: metadata.name,
+          id: metadata.id,
+          author: typeof metadata.author === "string" ? metadata.author : "",
+          version: typeof metadata.version === "string" ? metadata.version : "",
+          description:
+            metadata.description ||
+            metadata.information ||
+            metadata.info ||
+            manifest.description ||
+            "",
+          type: typeof manifest?.loader?.type === "string" ? manifest.loader.type : "",
+          folder: entry.name,
+          icon,
+          enabled: store.get("enabled-extensions", {})[metadata.id] !== false,
+          error: "",
+        };
+      } catch (error) {
+        console.error(`Failed to load extension in ${folderPath}:`, error);
+        return {
+          name: entry.name,
+          id: "",
+          author: "",
+          version: "",
+          description: "",
+          type: "",
+          folder: entry.name,
+          icon: "",
+          enabled: false,
+          error: error.message,
+        };
+      }
+    });
+}
+
+function getBackgroundExtensionStyles() {
+  const allowedProperties = new Set([
+    "background-color",
+    "background-image",
+    "background-position",
+    "background-repeat",
+    "background-size",
+  ]);
+  const styles = [];
+
+  for (const extension of getInstalledExtensions()) {
+    if (!extension.id || !extension.enabled || extension.type !== "background") {
+      continue;
+    }
+
+    const folderPath = path.join(extensionsDirectory, extension.folder);
+    const stylesheetPath = path.join(folderPath, "src", "style.css");
+    if (!fs.existsSync(stylesheetPath)) continue;
+
+    try {
+      const stylesheet = fs.readFileSync(stylesheetPath, "utf8");
+      const rules = stylesheet.matchAll(/([^{}]+)\{([^{}]*)\}/g);
+      for (const [, selectorText, declarations] of rules) {
+        const selectors = selectorText.split(",").map((selector) => selector.trim().toLowerCase());
+        if (!selectors.some((selector) => selector === "body" || selector === "html")) {
+          continue;
+        }
+
+        for (const declaration of declarations.split(";")) {
+          const separator = declaration.indexOf(":");
+          if (separator < 1) continue;
+          const property = declaration.slice(0, separator).trim().toLowerCase();
+          let value = declaration.slice(separator + 1).trim();
+          if (
+            !allowedProperties.has(property) ||
+            !value ||
+            /[{};]/.test(value)
+          ) {
+            continue;
+          }
+
+          value = value.replace(/url\((['"]?)(.*?)\1\)/gi, (_match, _quote, resource) => {
+            if (
+              !resource ||
+              path.isAbsolute(resource) ||
+              /^[a-z][a-z\d+.-]*:/i.test(resource)
+            ) {
+              return "none";
+            }
+            const resourcePath = path.resolve(path.dirname(stylesheetPath), resource);
+            const relativePath = path.relative(folderPath, resourcePath);
+            if (
+              relativePath === ".." ||
+              relativePath.startsWith(`..${path.sep}`) ||
+              path.isAbsolute(relativePath) ||
+              !fs.existsSync(resourcePath) ||
+              !fs.statSync(resourcePath).isFile()
+            ) {
+              return "none";
+            }
+            return `url("${pathToFileURL(resourcePath).href}")`;
+          });
+          styles.push({ property, value });
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to load background styles for ${extension.id}:`, error);
+    }
+  }
+  return styles;
+}
 
 function ensureHistoryFile() {
   try {
@@ -322,6 +488,23 @@ ipcMain.on("window-maximize", () => {
 ipcMain.on("window-close", () => mainWindow?.close());
 ipcMain.handle("window-is-maximized", () => mainWindow?.isMaximized() ?? false);
 
+// ─── IPC: Extensions ─────────────────────────────────────────────────────────
+ipcMain.handle("get-extensions", () => getInstalledExtensions());
+ipcMain.handle("set-extension-enabled", (_event, id, enabled) => {
+  if (typeof id !== "string" || typeof enabled !== "boolean") {
+    throw new Error("La extensión y su estado no son válidos.");
+  }
+  if (!getInstalledExtensions().some((extension) => extension.id === id)) {
+    throw new Error(`No se encontró la extensión ${id}.`);
+  }
+
+  const enabledExtensions = store.get("enabled-extensions", {});
+  store.set("enabled-extensions", { ...enabledExtensions, [id]: enabled });
+});
+ipcMain.handle("get-background-extension-styles", () =>
+  getBackgroundExtensionStyles(),
+);
+
 // ─── IPC: Settings ────────────────────────────────────────────────────────────
 ipcMain.handle("get-settings", () => ({
   splash: true,
@@ -406,6 +589,7 @@ ipcMain.on("install-update", () => autoUpdater?.quitAndInstall());
 
 // ─── App lifecycle ────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
+  ensureAppDirectories();
   updateAdBlocker();
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const headers = { ...details.responseHeaders };

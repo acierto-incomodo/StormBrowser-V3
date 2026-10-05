@@ -7,10 +7,167 @@
     <title>Extensions - StormBrowser</title>
     <link rel="stylesheet" href="style.css" />
     <style>
+        body {
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .extensions-page {
+            width: min(900px, calc(100% - 48px));
+            margin: 0 auto;
+            padding: 76px 0 40px;
+            color: var(--text-primary);
+        }
+
+        .extensions-page h1 {
+            margin: 0 0 8px;
+            font-size: 26px;
+        }
+
+        .extensions-description,
+        .extensions-folder-hint {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .extensions-folder-hint {
+            margin: 8px 0 24px;
+            font-size: 13px;
+        }
+
+        .extensions-folder-hint code {
+            color: var(--accent);
+            overflow-wrap: anywhere;
+        }
+
+        #extensions-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 16px;
+        }
+
+        .extension-card {
+            min-width: 0;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            background: var(--bg-elevated);
+        }
+
+        .extension-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .extension-icon {
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: var(--bg-base);
+            color: var(--accent);
+            font-size: 20px;
+            object-fit: contain;
+        }
+
+        .extension-card h2 {
+            min-width: 0;
+            margin: 0;
+            overflow-wrap: anywhere;
+            font-size: 16px;
+        }
+
+        .extension-type {
+            display: inline-block;
+            margin-top: 5px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .extension-description {
+            min-height: 40px;
+            margin: 16px 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .extension-details {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 7px 12px;
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .extension-details dt {
+            color: var(--text-muted);
+        }
+
+        .extension-details dd {
+            min-width: 0;
+            margin: 0;
+            color: var(--text-secondary);
+            overflow-wrap: anywhere;
+        }
+
+        .extension-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+        }
+
+        .extension-state {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .extension-toggle {
+            border: 1px solid var(--border-focus);
+            border-radius: 7px;
+            padding: 7px 12px;
+            background: var(--accent-soft);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .extension-toggle:hover {
+            border-color: var(--accent);
+        }
+
+        .extension-toggle:disabled {
+            cursor: wait;
+            opacity: 0.6;
+        }
+
+        .extension-card-error {
+            color: #ff9292;
+            font-size: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        .extensions-empty {
+            grid-column: 1 / -1;
+            padding: 28px;
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-lg);
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
         .back-button {
             position: fixed;
             top: 16px;
             left: 16px;
+            z-index: 1;
             width: auto;
             height: 32px;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -29,16 +186,6 @@
             color: #e8e8f0;
             border-color: #6c8fff55;
         }
-
-        .content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-            color: #8888a8;
-        }
     </style>
 </head>
 
@@ -50,39 +197,154 @@
         </svg>
         <span data-i18n="back">Back</span>
     </button>
-    <div class="content">
+    <main class="extensions-page">
         <h1 data-i18n="extensions_title">Extension Manager</h1>
-        <h2>On Development</h2>
-    </div>
+        <p class="extensions-description" data-i18n="extensions_description"></p>
+        <p class="extensions-folder-hint">
+            <span data-i18n="extensions_folder_hint"></span>
+            <code>StormGamesStudios/Programs/StormBrowser/extensions/&lt;extension-folder&gt;/</code>
+        </p>
+        <section id="extensions-list" aria-live="polite"></section>
+    </main>
     <script>
         const fs = require("fs");
         const path = require("path");
+        const { ipcRenderer } = require("electron");
+        let translations = {};
 
         async function loadLocale() {
             let settings = { language: "auto" };
             try {
                 settings = JSON.parse(localStorage.getItem("storm-settings")) || settings;
-            } catch (e) { }
+            } catch (error) {
+                console.error("Failed to read saved language preference:", error);
+            }
 
             let lang = settings.language;
             if (!lang || lang === "auto") {
-                const systemLanguage = await require("electron").ipcRenderer.invoke("get-app-locale");
+                const systemLanguage = await ipcRenderer.invoke("get-app-locale");
                 lang = systemLanguage.startsWith("es") ? "es" : systemLanguage.startsWith("eu") ? "eu" : "en";
             }
 
             try {
                 const filePath = path.join(__dirname, "..", "assets", "lang", "extensions", `${lang}.json`);
-                const translations = JSON.parse(fs.readFileSync(filePath, "utf8"));
-                document.querySelectorAll("[data-i18n]").forEach((element) => {
-                    const key = element.getAttribute("data-i18n");
-                    if (translations[key]) element.textContent = translations[key];
-                });
-            } catch (e) {
-                console.error("Extensions locale error:", e);
+                translations = JSON.parse(fs.readFileSync(filePath, "utf8"));
+            } catch (error) {
+                console.error("Extensions locale error:", error);
+                const fallbackPath = path.join(__dirname, "..", "assets", "lang", "extensions", "en.json");
+                translations = JSON.parse(fs.readFileSync(fallbackPath, "utf8"));
             }
+
+            document.querySelectorAll("[data-i18n]").forEach((element) => {
+                const key = element.getAttribute("data-i18n");
+                if (translations[key]) element.textContent = translations[key];
+            });
         }
 
-        loadLocale();
+        function addDetail(details, labelKey, value) {
+            const label = document.createElement("dt");
+            label.textContent = translations[labelKey];
+            const content = document.createElement("dd");
+            content.textContent = value || "—";
+            details.append(label, content);
+        }
+
+        function createExtensionCard(extension) {
+            const card = document.createElement("article");
+            card.className = "extension-card";
+            const header = document.createElement("header");
+            header.className = "extension-card-header";
+            const icon = document.createElement(extension.icon ? "img" : "div");
+            icon.className = "extension-icon";
+            if (extension.icon) {
+                icon.src = extension.icon;
+                icon.alt = "";
+            } else {
+                icon.textContent = "✦";
+            }
+
+            const heading = document.createElement("div");
+            const name = document.createElement("h2");
+            name.textContent = extension.name;
+            const type = document.createElement("span");
+            type.className = "extension-type";
+            type.textContent = extension.type || translations.unknown_type;
+            heading.append(name, type);
+            header.append(icon, heading);
+
+            const description = document.createElement("p");
+            description.className = "extension-description";
+            description.textContent = extension.description || translations.no_description;
+
+            const details = document.createElement("dl");
+            details.className = "extension-details";
+            addDetail(details, "extension_id", extension.id);
+            addDetail(details, "extension_author", extension.author || translations.unknown_author);
+            addDetail(details, "extension_version", extension.version);
+            addDetail(details, "extension_folder", extension.folder);
+
+            card.append(header, description, details);
+            if (extension.error) {
+                const error = document.createElement("p");
+                error.className = "extension-card-error";
+                error.textContent = `${translations.extension_load_error}: ${extension.error}`;
+                card.append(error);
+            } else {
+                const footer = document.createElement("footer");
+                footer.className = "extension-card-footer";
+                const state = document.createElement("span");
+                state.className = "extension-state";
+                state.textContent = translations[extension.enabled ? "extension_enabled" : "extension_disabled"];
+                const toggle = document.createElement("button");
+                toggle.className = "extension-toggle";
+                toggle.type = "button";
+                toggle.textContent = translations[extension.enabled ? "extension_disable" : "extension_enable"];
+                toggle.setAttribute("aria-pressed", String(extension.enabled));
+                toggle.addEventListener("click", async () => {
+                    toggle.disabled = true;
+                    try {
+                        await ipcRenderer.invoke("set-extension-enabled", extension.id, !extension.enabled);
+                        await renderExtensions();
+                        window.parent.postMessage({ type: "extensions-changed" }, "*");
+                    } catch (error) {
+                        console.error("Failed to update extension state:", error);
+                        state.textContent = error.message;
+                        toggle.disabled = false;
+                    }
+                });
+                footer.append(state, toggle);
+                card.append(footer);
+            }
+            return card;
+        }
+
+        async function renderExtensions() {
+            const container = document.getElementById("extensions-list");
+            const extensions = await ipcRenderer.invoke("get-extensions");
+            container.replaceChildren();
+            if (extensions.length === 0) {
+                const empty = document.createElement("p");
+                empty.className = "extensions-empty";
+                empty.textContent = translations.no_extensions;
+                container.append(empty);
+                return;
+            }
+            extensions.forEach((extension) => container.append(createExtensionCard(extension)));
+        }
+
+        async function init() {
+            await loadLocale();
+            await renderExtensions();
+        }
+
+        init().catch((error) => {
+            console.error("Failed to initialize extension manager:", error);
+            const message = document.createElement("p");
+            message.className = "extensions-empty";
+            message.textContent = `${translations.extensions_load_failed || "Could not load extensions"}: ${error.message}`;
+            document.getElementById("extensions-list").append(message);
+        });
+
         document.getElementById("back-button").addEventListener("click", () => {
             window.parent.postMessage({ type: "navigate", url: "storm://settings" }, "*");
         });

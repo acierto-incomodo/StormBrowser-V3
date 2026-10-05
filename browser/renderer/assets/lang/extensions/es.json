@@ -1,4 +1,20 @@
 {
     "back": "Atrás",
-    "extensions_title": "Administrador de Extensiones"
+    "extensions_title": "Administrador de extensiones",
+    "extensions_description": "Administra las extensiones guardadas en StormBrowser. Las extensiones de tipo background pueden cambiar el fondo de las pestañas nuevas.",
+    "extensions_folder_hint": "Copia aquí cada carpeta de extensión:",
+    "no_extensions": "No se encontraron extensiones. Añade arriba una carpeta de extensión que contenga extension.json.",
+    "no_description": "No se proporcionó una descripción.",
+    "unknown_type": "Tipo desconocido",
+    "extension_id": "ID",
+    "extension_author": "Autor",
+    "unknown_author": "Desconocido",
+    "extension_version": "Versión",
+    "extension_folder": "Carpeta",
+    "extension_enabled": "Activada",
+    "extension_disabled": "Desactivada",
+    "extension_enable": "Activar",
+    "extension_disable": "Desactivar",
+    "extension_load_error": "No se pudo leer la extensión",
+    "extensions_load_failed": "No se pudieron cargar las extensiones"
 }

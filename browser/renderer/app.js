@@ -76,10 +76,38 @@ const dialogConfirm = document.getElementById("dialog-confirm");
 
 let dialogAction = null; // Para saber qué hacer al confirmar el diálogo
 
+async function applyBackgroundExtensions() {
+  try {
+    const extensions = await ipcRenderer.invoke("get-background-extension-styles");
+    const declarations = new Map();
+    for (const { property, value } of extensions) {
+      if (property === "background-image") {
+        const existing = declarations.get(property);
+        declarations.set(property, existing ? `${value}, ${existing}` : value);
+      } else {
+        declarations.set(property, value);
+      }
+    }
+
+    let style = document.getElementById("extension-background-styles");
+    if (!style) {
+      style = document.createElement("style");
+      style.id = "extension-background-styles";
+      document.head.appendChild(style);
+    }
+    style.textContent = declarations.size
+      ? `#new-tab-page { ${Array.from(declarations, ([property, value]) => `${property}: ${value};`).join(" ")} }`
+      : "";
+  } catch (error) {
+    console.error("Failed to apply background extensions:", error);
+  }
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
   // Load settings from main process (electron-store)
   settings = await ipcRenderer.invoke("get-settings");
+  await applyBackgroundExtensions();
   updateAIUI();
   await loadLocale();
   const welcomeCompleted = await ipcRenderer.invoke("is-welcome-completed");
@@ -158,7 +186,9 @@ ipcRenderer.on("context-menu-open-link-new-tab", (_event, url) => {
 });
 // Also handle postMessage from settings webview
 window.addEventListener("message", async (e) => {
-  if (e.data?.type === "complete-welcome") {
+  if (e.data?.type === "extensions-changed") {
+    await applyBackgroundExtensions();
+  } else if (e.data?.type === "complete-welcome") {
     try {
       const nextSettings = { ...settings, ...e.data.settings };
       await ipcRenderer.invoke("complete-welcome", nextSettings);

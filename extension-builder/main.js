@@ -36,6 +36,7 @@ function escapeHtml(value) {
 ipcMain.handle("create-extension", async (event, details) => {
 	const name = String(details?.name || "").trim();
 	const id = String(details?.id || "").trim();
+	const author = String(details?.author || "").trim();
 	const version = String(details?.version || "").trim();
 
 	if (!name || name.length > 60) {
@@ -46,6 +47,9 @@ ipcMain.handle("create-extension", async (event, details) => {
 	}
 	if (!/^\d+\.\d+\.\d+$/.test(version)) {
 		throw new Error("La versión debe tener el formato 1.0.0.");
+	}
+	if (author.length > 80) {
+		throw new Error("El nombre del autor no puede superar los 80 caracteres.");
 	}
 
 	const parent = BrowserWindow.fromWebContents(event.sender);
@@ -70,6 +74,7 @@ ipcMain.handle("create-extension", async (event, details) => {
 		extension: {
 			name,
 			id,
+			...(author ? { author } : {}),
 			version: `v${version}`,
 			index: "extension.loader",
 			fileSorces: "extension.soruces",

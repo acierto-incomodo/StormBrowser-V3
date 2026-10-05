@@ -1,4 +1,20 @@
 {
     "back": "Atzera",
-    "extensions_title": "Hedapen-kudeatzailea"
+    "extensions_title": "Hedapen-kudeatzailea",
+    "extensions_description": "Kudeatu StormBrowser-en gordetako hedapenak. Background motako hedapenek fitxa berrien atzeko planoa alda dezakete.",
+    "extensions_folder_hint": "Kopiatu hedapen-karpeta bakoitza hemen:",
+    "no_extensions": "Ez da hedapenik aurkitu. Gehitu goiko karpetan extension.json duen hedapen-karpeta.",
+    "no_description": "Ez da deskribapenik eman.",
+    "unknown_type": "Mota ezezaguna",
+    "extension_id": "IDa",
+    "extension_author": "Egilea",
+    "unknown_author": "Ezezaguna",
+    "extension_version": "Bertsioa",
+    "extension_folder": "Karpeta",
+    "extension_enabled": "Gaituta",
+    "extension_disabled": "Desgaituta",
+    "extension_enable": "Gaitu",
+    "extension_disable": "Desgaitu",
+    "extension_load_error": "Ezin izan da hedapena irakurri",
+    "extensions_load_failed": "Ezin izan dira hedapenak kargatu"
 }
