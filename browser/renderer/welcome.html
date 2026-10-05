@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome — StormBrowser</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      color-scheme: dark;
+      font-family: Inter, "Segoe UI", system-ui, sans-serif;
+      color: #eef0fb;
+      background: #0f1018;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      --muted: #989bb3;
+      --line: #ffffff12;
+      --accent: #819aff;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 34px;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 15% 15%, #6757b32b, transparent 40%),
+        radial-gradient(ellipse at 85% 85%, #4e85c51b, transparent 38%),
+        #0f1018;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    .welcome-card {
+      display: grid;
+      grid-template-columns: minmax(270px, 0.9fr) minmax(370px, 1.1fr);
+      width: min(100%, 960px);
+      min-height: 550px;
+      overflow: hidden;
+      border: 1px solid #ffffff16;
+      border-radius: 26px;
+      background: #171923eF;
+      box-shadow: 0 30px 100px #0008, 0 1px 0 #ffffff0a inset;
+    }
+
+    .intro {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 42px 38px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 40% 42%, #8f82ff36, transparent 52%),
+        linear-gradient(145deg, #24243a 0%, #1b1c2b 58%, #171923 100%);
+      border-right: 1px solid var(--line);
+    }
+
+    .intro::after {
+      position: absolute;
+      right: -90px;
+      bottom: 70px;
+      width: 260px;
+      height: 260px;
+      content: "";
+      border: 1px solid #ffffff0c;
+      border-radius: 50%;
+      box-shadow: 0 0 0 28px #ffffff05, 0 0 0 58px #ffffff03;
+      pointer-events: none;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .brand img {
+      width: 34px;
+      height: 34px;
+    }
+
+    .intro-copy {
+      position: relative;
+      z-index: 1;
+      margin: auto 0;
+      padding: 52px 0 30px;
+    }
+
+    .eyebrow {
+      margin-bottom: 16px;
+      color: #b8baff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 330px;
+      margin: 0;
+      font-size: clamp(34px, 4.2vw, 48px);
+      font-weight: 550;
+      letter-spacing: -0.055em;
+      line-height: 1.08;
+    }
+
+    .intro-copy p {
+      max-width: 330px;
+      margin: 20px 0 0;
+      color: #b6b8ca;
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .privacy-note {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #aeb0c2;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .privacy-note svg {
+      flex: 0 0 auto;
+      color: #9caaff;
+    }
+
+    .setup {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 42px clamp(28px, 5vw, 54px);
+    }
+
+    .step-label {
+      margin-bottom: 9px;
+      color: #9caaff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 550;
+      letter-spacing: -0.035em;
+    }
+
+    .setup-desc {
+      margin: 8px 0 26px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .field {
+      margin-top: 20px;
+    }
+
+    .field-label {
+      display: block;
+      margin-bottom: 9px;
+      color: #d9dbea;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .language-select {
+      width: 100%;
+      height: 42px;
+      padding: 0 13px;
+      border: 1px solid #ffffff19;
+      border-radius: 10px;
+      outline: none;
+      background: #10121b;
+      color: #eef0fb;
+      cursor: pointer;
+    }
+
+    .language-select:focus-visible,
+    .engine:focus-within {
+      border-color: #8297ff99;
+      box-shadow: 0 0 0 3px #8297ff1c;
+    }
+
+    .engines {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .engine {
+      display: flex;
+      align-items: center;
+      min-height: 46px;
+      gap: 10px;
+      padding: 0 12px;
+      border: 1px solid #ffffff14;
+      border-radius: 10px;
+      background: #10121b80;
+      color: #d7d9e8;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease;
+    }
+
+    .engine:hover {
+      background: #ffffff08;
+    }
+
+    .engine.selected {
+      border-color: #8297ff99;
+      background: #8297ff13;
+    }
+
+    .engine input {
+      width: 14px;
+      height: 14px;
+      margin: 0;
+      accent-color: #8297ff;
+    }
+
+    .engine-name {
+      font-size: 12px;
+      font-weight: 550;
+    }
+
+    .adblock-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-top: 22px;
+      padding: 15px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .adblock-copy strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #e3e5f1;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .adblock-copy span {
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.5;
+    }
+
+    .switch {
+      position: relative;
+      flex: 0 0 auto;
+      width: 38px;
+      height: 22px;
+    }
+
+    .switch input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    .switch-track {
+      position: absolute;
+      inset: 0;
+      border: 1px solid #ffffff22;
+      border-radius: 12px;
+      background: #303342;
+      cursor: pointer;
+      transition: background 140ms ease, border-color 140ms ease;
+    }
+
+    .switch-track::after {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #b9bbca;
+      content: "";
+      transition: transform 140ms ease, background 140ms ease;
+    }
+
+    .switch input:checked + .switch-track {
+      border-color: #8297ff;
+      background: #7189f3;
+    }
+
+    .switch input:checked + .switch-track::after {
+      transform: translateX(16px);
+      background: #fff;
+    }
+
+    .switch input:focus-visible + .switch-track {
+      outline: 2px solid #b4c0ff;
+      outline-offset: 3px;
+    }
+
+    .finish {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .finish-hint {
+      color: #85889f;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .finish-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      gap: 10px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #879aff, #746ce8);
+      box-shadow: 0 8px 24px #7375ed35;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 650;
+      cursor: pointer;
+      transition: transform 140ms ease, filter 140ms ease;
+    }
+
+    .finish-button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .finish-button:focus-visible {
+      outline: 2px solid #c2caff;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        display: block;
+        padding: 20px;
+      }
+
+      .welcome-card {
+        grid-template-columns: 1fr;
+        max-width: 520px;
+        margin: 0 auto;
+      }
+
+      .intro {
+        min-height: 280px;
+        padding: 26px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .intro-copy {
+        padding: 30px 0 14px;
+      }
+
+      .intro-copy h1 {
+        font-size: 36px;
+      }
+
+      .intro-copy p {
+        margin-top: 12px;
+      }
+
+      .privacy-note {
+        display: none;
+      }
+
+      .setup {
+        padding: 30px 26px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body {
+        padding: 10px;
+      }
+
+      .welcome-card {
+        border-radius: 18px;
+      }
+
+      .engines {
+        grid-template-columns: 1fr;
+      }
+
+      .finish {
+        align-items: stretch;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="welcome-card">
+    <section class="intro" aria-labelledby="welcome-title">
+      <div class="brand">
+        <img src="assets/img/logo.svg" alt="" />
+        <span>StormBrowser</span>
+      </div>
+      <div class="intro-copy">
+        <div class="eyebrow" data-copy="eyebrow">Tu navegador, a tu manera</div>
+        <h1 id="welcome-title" data-copy="title">Navega con libertad.</h1>
+        <p data-copy="intro">
+          Vamos a preparar StormBrowser para ti. Elige unas preferencias y estarás listo para empezar.
+        </p>
+      </div>
+      <div class="privacy-note">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" aria-hidden="true">
+          <path d="M8.5 1.5 14 3.7v4.6c0 3.6-2.5 6.1-5.5 7.2C5.5 14.4 3 11.9 3 8.3V3.7l5.5-2.2Z"
+            stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" />
+          <path d="m6.1 8.3 1.6 1.6 3.3-3.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        <span data-copy="privacy">Tus preferencias se guardan en este dispositivo.</span>
+      </div>
+    </section>
+
+    <section class="setup" aria-labelledby="setup-title">
+      <div class="step-label" data-copy="step">Configuración inicial · 1 de 1</div>
+      <h2 id="setup-title" data-copy="setupTitle">Personaliza tu navegador</h2>
+      <p class="setup-desc" data-copy="setupDesc">Podrás cambiar estas opciones cuando quieras desde Ajustes.</p>
+
+      <div class="field">
+        <label class="field-label" for="language" data-copy="languageLabel">Idioma</label>
+        <select class="language-select" id="language">
+          <option value="auto" data-copy="langAuto">Automático</option>
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="eu">Euskara</option>
+        </select>
+      </div>
+
+      <fieldset class="field" style="padding: 0; border: 0; margin-inline: 0;">
+        <legend class="field-label" data-copy="searchLabel">Buscador predeterminado</legend>
+        <div class="engines">
+          <label class="engine" data-engine="google">
+            <input type="radio" name="engine" value="google" />
+            <span class="engine-name">Google</span>
+          </label>
+          <label class="engine" data-engine="bing">
+            <input type="radio" name="engine" value="bing" />
+            <span class="engine-name">Bing</span>
+          </label>
+          <label class="engine" data-engine="duckduckgo">
+            <input type="radio" name="engine" value="duckduckgo" />
+            <span class="engine-name">DuckDuckGo</span>
+          </label>
+          <label class="engine" data-engine="ecosia">
+            <input type="radio" name="engine" value="ecosia" />
+            <span class="engine-name">Ecosia</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="adblock-row">
+        <div class="adblock-copy">
+          <strong data-copy="adblockTitle">Bloqueador de anuncios</strong>
+          <span data-copy="adblockDesc">Bloquea anuncios y rastreadores en las páginas web.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="adblock" role="switch" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="finish">
+        <span class="finish-hint" data-copy="finishHint">Siempre podrás ajustar esto más tarde.</span>
+        <button class="finish-button" id="finish" type="button">
+          <span data-copy="finish">Guardar y empezar</span>
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path d="M2.5 7.5h10m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const { ipcRenderer } = require("electron");
+
+    const copy = {
+      es: {
+        eyebrow: "Tu navegador, a tu manera",
+        title: "Navega con libertad.",
+        intro: "Vamos a preparar StormBrowser para ti. Elige unas preferencias y estarás listo para empezar.",
+        privacy: "Tus preferencias se guardan en este dispositivo.",
+        step: "Configuración inicial · 1 de 1",
+        setupTitle: "Personaliza tu navegador",
+        setupDesc: "Podrás cambiar estas opciones cuando quieras desde Ajustes.",
+        languageLabel: "Idioma",
+        langAuto: "Automático",
+        searchLabel: "Buscador predeterminado",
+        adblockTitle: "Bloqueador de anuncios",
+        adblockDesc: "Bloquea anuncios y rastreadores en las páginas web.",
+        finishHint: "Siempre podrás ajustar esto más tarde.",
+        finish: "Guardar y empezar",
+      },
+      en: {
+        eyebrow: "Your browser, your way",
+        title: "Browse freely.",
+        intro: "Let's get StormBrowser ready for you. Choose a few preferences and you’ll be ready to go.",
+        privacy: "Your preferences are saved on this device.",
+        step: "Quick setup · 1 of 1",
+        setupTitle: "Make it yours",
+        setupDesc: "You can change these preferences anytime in Settings.",
+        languageLabel: "Language",
+        langAuto: "Automatic",
+        searchLabel: "Default search engine",
+        adblockTitle: "Ad blocker",
+        adblockDesc: "Block ads and trackers on websites.",
+        finishHint: "You can always adjust this later.",
+        finish: "Save and get started",
+      },
+      eu: {
+        eyebrow: "Zure nabigatzailea, zure erara",
+        title: "Nabigatu libre.",
+        intro: "StormBrowser zuretzat prestatuko dugu. Aukeratu hobespen batzuk eta hasteko prest egongo zara.",
+        privacy: "Zure hobespenak gailu honetan gordetzen dira.",
+        step: "Hasierako konfigurazioa · 1/1",
+        setupTitle: "Pertsonalizatu nabigatzailea",
+        setupDesc: "Aukera hauek Ezarpenetan alda ditzakezu nahi duzunean.",
+        languageLabel: "Hizkuntza",
+        langAuto: "Automatikoa",
+        searchLabel: "Bilatzaile lehenetsia",
+        adblockTitle: "Iragarki-blokeatzailea",
+        adblockDesc: "Blokeatu iragarkiak eta jarraitzaileak webguneetan.",
+        finishHint: "Geroago ere alda ditzakezu.",
+        finish: "Gorde eta hasi",
+      },
+    };
+
+    let settings = {};
+    let systemLanguage = "en";
+
+    function resolvedLanguage(language) {
+      if (language !== "auto") return language;
+      return systemLanguage;
+    }
+
+    function applyCopy(language) {
+      const strings = copy[resolvedLanguage(language)] || copy.en;
+      document.documentElement.lang = resolvedLanguage(language);
+      document.querySelectorAll("[data-copy]").forEach((element) => {
+        const key = element.dataset.copy;
+        if (strings[key]) element.textContent = strings[key];
+      });
+    }
+
+    function selectEngine(value) {
+      document.querySelectorAll(".engine").forEach((label) => {
+        const selected = label.dataset.engine === value;
+        label.classList.toggle("selected", selected);
+        label.querySelector("input").checked = selected;
+      });
+    }
+
+    async function initialize() {
+      settings = await ipcRenderer.invoke("get-settings");
+      const locale = await ipcRenderer.invoke("get-app-locale");
+      systemLanguage = locale.startsWith("es") ? "es" : locale.startsWith("eu") ? "eu" : "en";
+
+      document.getElementById("language").value = settings.language || "auto";
+      document.getElementById("adblock").checked = settings.adBlock !== false;
+      selectEngine(settings.searchEngine || "google");
+      applyCopy(settings.language || "auto");
+    }
+
+    document.getElementById("language").addEventListener("change", (event) => {
+      applyCopy(event.target.value);
+    });
+
+    document.querySelectorAll('input[name="engine"]').forEach((input) => {
+      input.addEventListener("change", () => selectEngine(input.value));
+    });
+
+    document.getElementById("finish").addEventListener("click", () => {
+      const nextSettings = {
+        ...settings,
+        language: document.getElementById("language").value,
+        searchEngine: document.querySelector('input[name="engine"]:checked')?.value || "google",
+        adBlock: document.getElementById("adblock").checked,
+        welcomeCompleted: true,
+      };
+      window.parent.postMessage({ type: "complete-welcome", settings: nextSettings }, "*");
+    });
+
+    initialize().catch((error) => {
+      console.error("Welcome setup initialization failed:", error);
+    });
+  </script>
+</body>
+
+</html>

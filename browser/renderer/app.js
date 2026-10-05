@@ -4,6 +4,7 @@ const path = require("path");
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const HOME_URL = "storm://newtab";
+const WELCOME_URL = "storm://welcome";
 const SETTINGS_URL = "storm://settings";
 const HISTORY_URL = "storm://history";
 const APP_VERSION = require("../package.json").version;
@@ -84,6 +85,10 @@ async function init() {
 
   // Restore tabs or open a new one
   if (settings.restoreTabs) {
+    if (!settings.welcomeCompleted) {
+      createTab(WELCOME_URL);
+      return;
+    }
     const saved = await ipcRenderer.invoke("get-saved-tabs");
     if (saved && saved.length > 0) {
       saved.forEach((url) => createTab(url));
@@ -91,7 +96,7 @@ async function init() {
       createTab();
     }
   } else {
-    createTab();
+    createTab(settings.welcomeCompleted ? HOME_URL : WELCOME_URL);
   }
 }
 
@@ -152,7 +157,15 @@ ipcRenderer.on("context-menu-open-link-new-tab", (_event, url) => {
 });
 // Also handle postMessage from settings webview
 window.addEventListener("message", async (e) => {
-  if (e.data?.type === "save-settings") {
+  if (e.data?.type === "complete-welcome") {
+    const langChanged = settings.language !== e.data.settings.language;
+    settings = { ...settings, ...e.data.settings, welcomeCompleted: true };
+    ipcRenderer.send("save-settings", settings);
+    updateAdBlockUI();
+    updateAIUI();
+    if (langChanged) await loadLocale();
+    navigate(HOME_URL);
+  } else if (e.data?.type === "save-settings") {
     // Save settings to main process and update local state
     const langChanged = settings.language !== e.data.settings.language;
     ipcRenderer.send("save-settings", e.data.settings);
@@ -268,6 +281,7 @@ function createTab(url = HOME_URL) {
 
 function tabTitleFor(url) {
   if (url === HOME_URL) return i18n.new_tab || "Nueva pestaña";
+  if (url === WELCOME_URL) return i18n.welcome || "Welcome";
   if (url === SETTINGS_URL) return i18n.settings || "Configuración";
   if (url === HISTORY_URL) return i18n.history || "Historial";
   if (url === INFO_URL) return i18n.about || "Acerca de StormBrowser";
@@ -278,6 +292,7 @@ function tabTitleFor(url) {
 function isInternalUrl(url) {
   return (
     url === HOME_URL ||
+    url === WELCOME_URL ||
     url === SETTINGS_URL ||
     url === HISTORY_URL ||
     url === INFO_URL ||
@@ -359,20 +374,23 @@ function switchTab(id) {
   if (!tab) return;
 
   const isNew = tab.url === HOME_URL;
+  const isWelcome = tab.url === WELCOME_URL;
   const isSettings = tab.url === SETTINGS_URL;
   const isHistory = tab.url === HISTORY_URL;
   const isInfo = tab.url === INFO_URL;
   const isExtensions = tab.url === EXTENSIONS_URL;
-  const isInternal = isNew || isSettings || isHistory || isInfo || isExtensions;
+  const isInternal = isNew || isWelcome || isSettings || isHistory || isInfo || isExtensions;
 
   newTabPage.classList.toggle("hidden", !isNew);
 
   // Show/hide internal pages in webview-container
   document.getElementById("settings-page")?.remove();
+  document.getElementById("welcome-page")?.remove();
   document.getElementById("info-page")?.remove();
   document.getElementById("history-page")?.remove();
   document.getElementById("extensions-page")?.remove();
 
+  if (isWelcome) showInternalPage("welcome-page", "welcome.html");
   if (isSettings)
     showInternalPage("settings-page", `StormGamesStudios/../settings.html`);
   if (isHistory)
@@ -770,6 +788,7 @@ function navigate(url) {
   let finalUrl;
   if (
     url === HOME_URL ||
+    url === WELCOME_URL ||
     url === SETTINGS_URL ||
     url === HISTORY_URL ||
     url === INFO_URL ||
@@ -814,6 +833,7 @@ function navigate(url) {
 
   newTabPage.classList.add("hidden");
   document.getElementById("settings-page")?.remove();
+  document.getElementById("welcome-page")?.remove();
   document.getElementById("info-page")?.remove();
   document.getElementById("history-page")?.remove();
   document.getElementById("extensions-page")?.remove();

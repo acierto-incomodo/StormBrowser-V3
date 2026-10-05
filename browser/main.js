@@ -325,6 +325,7 @@ ipcMain.handle("get-settings", () => ({
   searchEngine: "google",
   historyNewTab: true,
   aiEnabled: true,
+  welcomeCompleted: Object.keys(store.get("settings", {})).length > 0,
   ...store.get("settings", {}),
 }));
 ipcMain.on("save-settings", (_, settings) => {
