@@ -1,0 +1,15 @@
+{
+    "extension": {
+        "name": "Background Sample",
+        "id": "Background-sample",
+        "version": "v1.0.0",
+        "icons": "icons/icon.png"
+    },
+    "loader": {
+        "version-loader": "v1",
+        "type": "background"
+    },
+    "url": {
+        "web1": ""
+    }
+}
