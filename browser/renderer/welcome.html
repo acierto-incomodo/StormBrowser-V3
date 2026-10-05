@@ -497,6 +497,17 @@
         </label>
       </div>
 
+      <div class="adblock-row">
+        <div class="adblock-copy">
+          <strong data-copy="aiTitle">Asistente de IA</strong>
+          <span data-copy="aiDesc">Permite usar el asistente de IA integrado en StormBrowser.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="ai-enabled" role="switch" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
       <div class="finish">
         <span class="finish-hint" data-copy="finishHint">Siempre podrás ajustar esto más tarde.</span>
         <button class="finish-button" id="finish" type="button">
@@ -527,6 +538,8 @@
         searchLabel: "Buscador predeterminado",
         adblockTitle: "Bloqueador de anuncios",
         adblockDesc: "Bloquea anuncios y rastreadores en las páginas web.",
+        aiTitle: "Asistente de IA",
+        aiDesc: "Permite usar el asistente de IA integrado en StormBrowser.",
         finishHint: "Siempre podrás ajustar esto más tarde.",
         finish: "Guardar y empezar",
       },
@@ -543,6 +556,8 @@
         searchLabel: "Default search engine",
         adblockTitle: "Ad blocker",
         adblockDesc: "Block ads and trackers on websites.",
+        aiTitle: "AI assistant",
+        aiDesc: "Allow the built-in AI assistant in StormBrowser.",
         finishHint: "You can always adjust this later.",
         finish: "Save and get started",
       },
@@ -559,6 +574,8 @@
         searchLabel: "Bilatzaile lehenetsia",
         adblockTitle: "Iragarki-blokeatzailea",
         adblockDesc: "Blokeatu iragarkiak eta jarraitzaileak webguneetan.",
+        aiTitle: "AA laguntzailea",
+        aiDesc: "Baimendu StormBrowser-eko AA laguntzaile integratua erabiltzea.",
         finishHint: "Geroago ere alda ditzakezu.",
         finish: "Gorde eta hasi",
       },
@@ -596,6 +613,7 @@
 
       document.getElementById("language").value = settings.language || "auto";
       document.getElementById("adblock").checked = settings.adBlock !== false;
+      document.getElementById("ai-enabled").checked = settings.aiEnabled !== false;
       selectEngine(settings.searchEngine || "google");
       applyCopy(settings.language || "auto");
     }
@@ -614,7 +632,7 @@
         language: document.getElementById("language").value,
         searchEngine: document.querySelector('input[name="engine"]:checked')?.value || "google",
         adBlock: document.getElementById("adblock").checked,
-        welcomeCompleted: true,
+        aiEnabled: document.getElementById("ai-enabled").checked,
       };
       window.parent.postMessage({ type: "complete-welcome", settings: nextSettings }, "*");
     });

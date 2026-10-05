@@ -7,6 +7,14 @@ const { ElectronBlocker } = require("@ghostery/adblocker-electron");
 
 const store = new Store();
 const historyPath = path.join(app.getPath("userData"), "history.json");
+const welcomeSettingsPath = path.join(
+  app.getPath("appData"),
+  "StormGamesStudios",
+  "Programs",
+  "StormBrowser",
+  "settings",
+  "welcome.settings",
+);
 
 function ensureHistoryFile() {
   try {
@@ -325,10 +333,9 @@ ipcMain.handle("get-settings", () => ({
   searchEngine: "google",
   historyNewTab: true,
   aiEnabled: true,
-  welcomeCompleted: Object.keys(store.get("settings", {})).length > 0,
   ...store.get("settings", {}),
 }));
-ipcMain.on("save-settings", (_, settings) => {
+function persistSettings(settings) {
   const old = store.get("settings");
   store.set("settings", settings);
   if (old?.adBlock !== settings.adBlock) {
@@ -337,6 +344,28 @@ ipcMain.on("save-settings", (_, settings) => {
   if (old?.language !== settings.language) {
     loadContextMenuTranslations(settings.language);
     updateSpellCheckerLanguages(mainWindow?.webContents?.session, settings.language);
+  }
+}
+ipcMain.on("save-settings", (_, settings) => {
+  persistSettings(settings);
+});
+ipcMain.handle("is-welcome-completed", () => {
+  try {
+    return fs.readFileSync(welcomeSettingsPath, "utf8").trim() === "yes";
+  } catch (err) {
+    if (err.code === "ENOENT") return false;
+    console.error("Failed to read welcome completion marker:", err);
+    throw err;
+  }
+});
+ipcMain.handle("complete-welcome", (_, settings) => {
+  persistSettings(settings);
+  try {
+    fs.mkdirSync(path.dirname(welcomeSettingsPath), { recursive: true });
+    fs.writeFileSync(welcomeSettingsPath, "yes", "utf8");
+  } catch (err) {
+    console.error("Failed to write welcome completion marker:", err);
+    throw err;
   }
 });
 ipcMain.handle("get-app-locale", () => app.getLocale());

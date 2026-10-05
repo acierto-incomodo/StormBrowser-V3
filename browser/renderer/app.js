@@ -82,10 +82,11 @@ async function init() {
   settings = await ipcRenderer.invoke("get-settings");
   updateAIUI();
   await loadLocale();
+  const welcomeCompleted = await ipcRenderer.invoke("is-welcome-completed");
 
   // Restore tabs or open a new one
   if (settings.restoreTabs) {
-    if (!settings.welcomeCompleted) {
+    if (!welcomeCompleted) {
       createTab(WELCOME_URL);
       return;
     }
@@ -96,7 +97,7 @@ async function init() {
       createTab();
     }
   } else {
-    createTab(settings.welcomeCompleted ? HOME_URL : WELCOME_URL);
+    createTab(welcomeCompleted ? HOME_URL : WELCOME_URL);
   }
 }
 
@@ -158,13 +159,18 @@ ipcRenderer.on("context-menu-open-link-new-tab", (_event, url) => {
 // Also handle postMessage from settings webview
 window.addEventListener("message", async (e) => {
   if (e.data?.type === "complete-welcome") {
-    const langChanged = settings.language !== e.data.settings.language;
-    settings = { ...settings, ...e.data.settings, welcomeCompleted: true };
-    ipcRenderer.send("save-settings", settings);
-    updateAdBlockUI();
-    updateAIUI();
-    if (langChanged) await loadLocale();
-    navigate(HOME_URL);
+    try {
+      const nextSettings = { ...settings, ...e.data.settings };
+      await ipcRenderer.invoke("complete-welcome", nextSettings);
+      const langChanged = settings.language !== nextSettings.language;
+      settings = nextSettings;
+      updateAdBlockUI();
+      updateAIUI();
+      if (langChanged) await loadLocale();
+      navigate(HOME_URL);
+    } catch (error) {
+      console.error("Failed to complete welcome setup:", error);
+    }
   } else if (e.data?.type === "save-settings") {
     // Save settings to main process and update local state
     const langChanged = settings.language !== e.data.settings.language;
