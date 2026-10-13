@@ -2,6 +2,7 @@
     "back": "Atrás",
     "extensions_title": "Administrador de extensiones",
     "extensions_description": "Administra las extensiones guardadas en StormBrowser. Las extensiones de tipo background pueden cambiar el fondo de las pestañas nuevas.",
+    "ublock_dashboard": "Configuración de uBlock Origin",
     "extensions_folder_hint": "Copia aquí cada carpeta de extensión:",
     "no_extensions": "No se encontraron extensiones. Añade arriba una carpeta de extensión que contenga extension.json.",
     "no_description": "No se proporcionó una descripción.",

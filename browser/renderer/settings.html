@@ -783,6 +783,12 @@
         document.getElementById("toggle-history-new-tab").checked = s.historyNewTab ?? true;
         document.getElementById("toggle-ai-enabled").checked = s.aiEnabled !== false;
         document.getElementById("select-search-engine").value = s.searchEngine || "google";
+      } else if (e.data?.type === "settings-save-failed") {
+        console.error("Settings could not be saved:", e.data.message);
+        window.alert(e.data.message);
+        const s = await ipcRenderer.invoke("get-settings");
+        localStorage.setItem("storm-settings", JSON.stringify(s));
+        document.getElementById("toggle-adblock").checked = !!s.adBlock;
       } else if (e.data?.type === "confirm-reset") {
         localStorage.setItem("storm-settings", JSON.stringify({ ...DEFAULTS }));
         location.reload();

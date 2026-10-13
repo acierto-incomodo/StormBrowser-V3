@@ -30,6 +30,19 @@
             line-height: 1.6;
         }
 
+        .ublock-dashboard-button {
+            padding: 9px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .ublock-dashboard-button:hover {
+            border-color: var(--accent);
+        }
+
         .extensions-folder-hint {
             margin: 8px 0 24px;
             font-size: 13px;
@@ -200,6 +213,8 @@
     <main class="extensions-page">
         <h1 data-i18n="extensions_title">Extension Manager</h1>
         <p class="extensions-description" data-i18n="extensions_description"></p>
+        <button class="ublock-dashboard-button" id="open-ublock-dashboard" type="button"
+            data-i18n="ublock_dashboard">uBlock Origin settings</button>
         <p class="extensions-folder-hint">
             <span data-i18n="extensions_folder_hint"></span>
             <code>StormGamesStudios/Programs/StormBrowser/extensions/&lt;extension-folder&gt;/</code>
@@ -347,6 +362,14 @@
 
         document.getElementById("back-button").addEventListener("click", () => {
             window.parent.postMessage({ type: "navigate", url: "storm://settings" }, "*");
+        });
+        document.getElementById("open-ublock-dashboard").addEventListener("click", async () => {
+            try {
+                await ipcRenderer.invoke("open-ublock-dashboard");
+            } catch (error) {
+                console.error("Failed to open uBlock Origin dashboard:", error);
+                window.alert(error.message);
+            }
         });
     </script>
 </body>

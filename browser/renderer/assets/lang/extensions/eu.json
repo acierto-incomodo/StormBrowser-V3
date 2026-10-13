@@ -2,6 +2,7 @@
     "back": "Atzera",
     "extensions_title": "Hedapen-kudeatzailea",
     "extensions_description": "Kudeatu StormBrowser-en gordetako hedapenak. Background motako hedapenek fitxa berrien atzeko planoa alda dezakete.",
+    "ublock_dashboard": "uBlock Origin-en ezarpenak",
     "extensions_folder_hint": "Kopiatu hedapen-karpeta bakoitza hemen:",
     "no_extensions": "Ez da hedapenik aurkitu. Gehitu goiko karpetan extension.json duen hedapen-karpeta.",
     "no_description": "Ez da deskribapenik eman.",

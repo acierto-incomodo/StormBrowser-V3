@@ -1,10 +1,16 @@
-const { app, BrowserWindow, Menu, clipboard, ipcMain, session } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  Menu,
+  clipboard,
+  dialog,
+  ipcMain,
+  session,
+} = require("electron");
 const path = require("path");
 const fs = require("fs");
 const { pathToFileURL } = require("url");
 const Store = require("electron-store").default;
-
-const { ElectronBlocker } = require("@ghostery/adblocker-electron");
 
 const store = new Store();
 const historyPath = path.join(app.getPath("userData"), "history.json");
@@ -24,6 +30,22 @@ const extensionsDirectory = path.join(
 function ensureAppDirectories() {
   fs.mkdirSync(path.dirname(welcomeSettingsPath), { recursive: true });
   fs.mkdirSync(extensionsDirectory, { recursive: true });
+}
+
+function getUBlockExtensionPath() {
+  const extensionPath = app.isPackaged
+    ? path.join(
+        process.resourcesPath,
+        "app.asar.unpacked",
+        "ublock",
+        "upstream",
+      )
+    : path.join(__dirname, "ublock", "upstream");
+  const manifestPath = path.join(extensionPath, "manifest.json");
+  if (!fs.existsSync(manifestPath)) {
+    throw new Error(`No se encontró el manifiesto de uBlock Origin: ${manifestPath}`);
+  }
+  return extensionPath;
 }
 
 function getInstalledExtensions() {
@@ -223,7 +245,8 @@ try {
 
 let mainWindow;
 let splashWindow;
-let blocker;
+let uBlockExtensionId;
+let uBlockDashboardWindow;
 let contextMenuI18n = {};
 
 // ─── Load context menu translations ────────────────────────────────────────────
@@ -279,20 +302,50 @@ function updateSpellCheckerLanguages(sessionInstance, language) {
   }
 }
 
-async function updateAdBlocker() {
-  const settings = store.get("settings", { adBlock: true });
-  if (settings.adBlock) {
-    if (!blocker) {
-      // Requiere fetch global (disponible en Node 18+ / Electron reciente)
-      blocker = await ElectronBlocker.fromPrebuiltAdsAndTracking(fetch);
+async function updateAdBlocker(enabled) {
+  if (enabled && !uBlockExtensionId) {
+    const extension = await session.defaultSession.extensions.loadExtension(
+      getUBlockExtensionPath(),
+    );
+    uBlockExtensionId = extension.id;
+  } else if (!enabled && uBlockExtensionId) {
+    session.defaultSession.extensions.removeExtension(uBlockExtensionId);
+    uBlockExtensionId = undefined;
+    if (uBlockDashboardWindow && !uBlockDashboardWindow.isDestroyed()) {
+      uBlockDashboardWindow.close();
     }
-    if (session.defaultSession) {
-      blocker.enableBlockingInSession(session.defaultSession);
-    }
-  } else {
-    if (blocker && session.defaultSession) {
-      blocker.disableBlockingInSession(session.defaultSession);
-    }
+  }
+}
+
+async function openUBlockDashboard() {
+  if (!uBlockExtensionId) {
+    throw new Error("uBlock Origin no está activado.");
+  }
+
+  if (uBlockDashboardWindow && !uBlockDashboardWindow.isDestroyed()) {
+    uBlockDashboardWindow.show();
+    uBlockDashboardWindow.focus();
+    return;
+  }
+
+  uBlockDashboardWindow = new BrowserWindow({
+    width: 1000,
+    height: 760,
+    title: "uBlock Origin",
+    webPreferences: {
+      session: session.defaultSession,
+    },
+  });
+  uBlockDashboardWindow.on("closed", () => {
+    uBlockDashboardWindow = undefined;
+  });
+  try {
+    await uBlockDashboardWindow.loadURL(
+      `chrome-extension://${uBlockExtensionId}/dashboard.html`,
+    );
+  } catch (error) {
+    uBlockDashboardWindow.close();
+    throw error;
   }
 }
 
@@ -490,6 +543,7 @@ ipcMain.handle("window-is-maximized", () => mainWindow?.isMaximized() ?? false);
 
 // ─── IPC: Extensions ─────────────────────────────────────────────────────────
 ipcMain.handle("get-extensions", () => getInstalledExtensions());
+ipcMain.handle("open-ublock-dashboard", () => openUBlockDashboard());
 ipcMain.handle("set-extension-enabled", (_event, id, enabled) => {
   if (typeof id !== "string" || typeof enabled !== "boolean") {
     throw new Error("La extensión y su estado no son válidos.");
@@ -518,20 +572,18 @@ ipcMain.handle("get-settings", () => ({
   aiEnabled: true,
   ...store.get("settings", {}),
 }));
-function persistSettings(settings) {
+async function persistSettings(settings) {
   const old = store.get("settings");
-  store.set("settings", settings);
   if (old?.adBlock !== settings.adBlock) {
-    updateAdBlocker();
+    await updateAdBlocker(settings.adBlock !== false);
   }
+  store.set("settings", settings);
   if (old?.language !== settings.language) {
     loadContextMenuTranslations(settings.language);
     updateSpellCheckerLanguages(mainWindow?.webContents?.session, settings.language);
   }
 }
-ipcMain.on("save-settings", (_, settings) => {
-  persistSettings(settings);
-});
+ipcMain.handle("save-settings", (_, settings) => persistSettings(settings));
 ipcMain.handle("is-welcome-completed", () => {
   try {
     return fs.readFileSync(welcomeSettingsPath, "utf8").trim() === "yes";
@@ -541,8 +593,8 @@ ipcMain.handle("is-welcome-completed", () => {
     throw err;
   }
 });
-ipcMain.handle("complete-welcome", (_, settings) => {
-  persistSettings(settings);
+ipcMain.handle("complete-welcome", async (_, settings) => {
+  await persistSettings(settings);
   try {
     fs.mkdirSync(path.dirname(welcomeSettingsPath), { recursive: true });
     fs.writeFileSync(welcomeSettingsPath, "yes", "utf8");
@@ -588,9 +640,19 @@ if (autoUpdater) {
 ipcMain.on("install-update", () => autoUpdater?.quitAndInstall());
 
 // ─── App lifecycle ────────────────────────────────────────────────────────────
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   ensureAppDirectories();
-  updateAdBlocker();
+  const settings = store.get("settings", { adBlock: true });
+  try {
+    await updateAdBlocker(settings.adBlock !== false);
+  } catch (error) {
+    console.error("Failed to load uBlock Origin:", error);
+    dialog.showErrorBox(
+      "uBlock Origin",
+      `No se pudo cargar uBlock Origin. El navegador continuará sin bloqueo de anuncios.\n\n${error.message}`,
+    );
+  }
+
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const headers = { ...details.responseHeaders };
     delete headers["content-security-policy"];
@@ -598,13 +660,16 @@ app.whenReady().then(() => {
     callback({ responseHeaders: headers });
   });
 
-  const settings = store.get("settings", { splash: true });
   loadContextMenuTranslations(settings.language);
   if (settings.splash) createSplash();
   createMainWindow();
   if (mainWindow?.webContents?.session) {
     updateSpellCheckerLanguages(mainWindow.webContents.session, settings.language);
   }
+}).catch((error) => {
+  console.error("Failed to initialize StormBrowser:", error);
+  dialog.showErrorBox("StormBrowser", error.message);
+  app.quit();
 });
 
 app.on("window-all-closed", () => {

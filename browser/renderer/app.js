@@ -202,17 +202,26 @@ window.addEventListener("message", async (e) => {
       console.error("Failed to complete welcome setup:", error);
     }
   } else if (e.data?.type === "save-settings") {
-    // Save settings to main process and update local state
-    const langChanged = settings.language !== e.data.settings.language;
-    ipcRenderer.send("save-settings", e.data.settings);
-    settings = e.data.settings;
-    updateAdBlockUI();
-    updateAIUI();
-    if (langChanged) {
-      await loadLocale();
+    try {
+      const langChanged = settings.language !== e.data.settings.language;
+      await ipcRenderer.invoke("save-settings", e.data.settings);
+      settings = e.data.settings;
+      updateAdBlockUI();
+      updateAIUI();
+      if (langChanged) {
+        await loadLocale();
+        document
+          .getElementById("settings-page")
+          ?.contentWindow?.postMessage({ type: "reload-locale" }, "*");
+      }
+    } catch (error) {
+      console.error("Failed to save settings:", error);
       document
         .getElementById("settings-page")
-        ?.contentWindow?.postMessage({ type: "reload-locale" }, "*");
+        ?.contentWindow?.postMessage(
+          { type: "settings-save-failed", message: error.message },
+          "*",
+        );
     }
   } else if (e.data?.type === "settings-changed") {
     settings = await ipcRenderer.invoke("get-settings");
@@ -885,10 +894,16 @@ function updateAdBlockUI() {
   if (i18n.ad_block) btnAdBlock.setAttribute("title", i18n.ad_block);
 }
 
-function toggleAdBlock() {
-  settings.adBlock = !settings.adBlock;
-  ipcRenderer.send("save-settings", settings);
-  updateAdBlockUI();
+async function toggleAdBlock() {
+  const nextSettings = { ...settings, adBlock: !settings.adBlock };
+  try {
+    await ipcRenderer.invoke("save-settings", nextSettings);
+    settings = nextSettings;
+    updateAdBlockUI();
+  } catch (error) {
+    console.error("Failed to update uBlock Origin state:", error);
+    alert(error.message);
+  }
   const settingsIframe = document.getElementById("settings-page");
   if (settingsIframe) {
     settingsIframe.contentWindow.postMessage({ type: "settings-changed" }, "*");

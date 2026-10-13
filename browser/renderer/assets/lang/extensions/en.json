@@ -2,6 +2,7 @@
     "back": "Back",
     "extensions_title": "Extension Manager",
     "extensions_description": "Manage extensions stored in StormBrowser. Background extensions can customize the new-tab background.",
+    "ublock_dashboard": "uBlock Origin settings",
     "extensions_folder_hint": "Copy each extension folder to:",
     "no_extensions": "No extensions found. Add an extension folder containing extension.json to the folder above.",
     "no_description": "No description provided.",
