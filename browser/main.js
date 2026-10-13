@@ -9,7 +9,6 @@ const {
 } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const { pathToFileURL } = require("url");
 const Store = require("electron-store").default;
 
 const store = new Store();
@@ -22,18 +21,12 @@ const welcomeSettingsPath = path.join(
   "settings",
   "welcome.settings",
 );
-const extensionsDirectory = path.join(
-  path.dirname(path.dirname(welcomeSettingsPath)),
-  "extensions",
-);
-
 function ensureAppDirectories() {
   fs.mkdirSync(path.dirname(welcomeSettingsPath), { recursive: true });
-  fs.mkdirSync(extensionsDirectory, { recursive: true });
 }
 
 function getUBlockExtensionPath() {
-  const extensionPath = app.isPackaged
+  return app.isPackaged
     ? path.join(
         process.resourcesPath,
         "app.asar.unpacked",
@@ -41,167 +34,84 @@ function getUBlockExtensionPath() {
         "upstream",
       )
     : path.join(__dirname, "ublock", "upstream");
-  const manifestPath = path.join(extensionPath, "manifest.json");
-  if (!fs.existsSync(manifestPath)) {
-    throw new Error(`No se encontró el manifiesto de uBlock Origin: ${manifestPath}`);
-  }
-  return extensionPath;
 }
 
-function getInstalledExtensions() {
-  ensureAppDirectories();
-  return fs
-    .readdirSync(extensionsDirectory, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => {
-      const folderPath = path.join(extensionsDirectory, entry.name);
-      try {
-        const manifest = JSON.parse(
-          fs.readFileSync(path.join(folderPath, "extension.json"), "utf8"),
-        );
-        const metadata = manifest?.extension;
-        if (
-          !metadata ||
-          typeof metadata.name !== "string" ||
-          typeof metadata.id !== "string"
-        ) {
-          throw new Error("El manifiesto debe incluir el nombre y el ID de la extensión.");
-        }
-
-        const iconPath =
-          typeof metadata.icons === "string"
-            ? path.resolve(folderPath, metadata.icons)
-            : "";
-        const iconRelativePath = iconPath ? path.relative(folderPath, iconPath) : "";
-        let icon = "";
-        if (
-          iconPath &&
-          iconRelativePath &&
-          !iconRelativePath.startsWith(`..${path.sep}`) &&
-          iconRelativePath !== ".." &&
-          !path.isAbsolute(iconRelativePath) &&
-          fs.existsSync(iconPath) &&
-          fs.statSync(iconPath).isFile() &&
-          fs.statSync(iconPath).size <= 1024 * 1024
-        ) {
-          const mimeTypes = {
-            ".png": "image/png",
-            ".jpg": "image/jpeg",
-            ".jpeg": "image/jpeg",
-            ".gif": "image/gif",
-            ".webp": "image/webp",
-          };
-          const mimeType = mimeTypes[path.extname(iconPath).toLowerCase()];
-          if (mimeType) {
-            icon = `data:${mimeType};base64,${fs.readFileSync(iconPath).toString("base64")}`;
-          }
-        }
-
-        return {
-          name: metadata.name,
-          id: metadata.id,
-          author: typeof metadata.author === "string" ? metadata.author : "",
-          version: typeof metadata.version === "string" ? metadata.version : "",
-          description:
-            metadata.description ||
-            metadata.information ||
-            metadata.info ||
-            manifest.description ||
-            "",
-          type: typeof manifest?.loader?.type === "string" ? manifest.loader.type : "",
-          folder: entry.name,
-          icon,
-          enabled: store.get("enabled-extensions", {})[metadata.id] !== false,
-          error: "",
-        };
-      } catch (error) {
-        console.error(`Failed to load extension in ${folderPath}:`, error);
-        return {
-          name: entry.name,
-          id: "",
-          author: "",
-          version: "",
-          description: "",
-          type: "",
-          folder: entry.name,
-          icon: "",
-          enabled: false,
-          error: error.message,
-        };
-      }
-    });
+function normalizeExtensionPath(extensionPath) {
+  const normalizedPath = path.resolve(extensionPath);
+  return process.platform === "win32" ? normalizedPath.toLowerCase() : normalizedPath;
 }
 
-function getBackgroundExtensionStyles() {
-  const allowedProperties = new Set([
-    "background-color",
-    "background-image",
-    "background-position",
-    "background-repeat",
-    "background-size",
-  ]);
-  const styles = [];
+function getUserExtensionPaths() {
+  const paths = store.get("extension-paths", []);
+  return Array.isArray(paths)
+    ? paths.filter((extensionPath) => typeof extensionPath === "string")
+    : [];
+}
 
-  for (const extension of getInstalledExtensions()) {
-    if (!extension.id || !extension.enabled || extension.type !== "background") {
-      continue;
-    }
+function getExtensionPaths() {
+  return [
+    getUBlockExtensionPath(),
+    ...getUserExtensionPaths(),
+  ].filter(
+    (extensionPath, index, paths) =>
+      paths.findIndex(
+        (candidate) =>
+          normalizeExtensionPath(candidate) ===
+          normalizeExtensionPath(extensionPath),
+      ) === index,
+  );
+}
 
-    const folderPath = path.join(extensionsDirectory, extension.folder);
-    const stylesheetPath = path.join(folderPath, "src", "style.css");
-    if (!fs.existsSync(stylesheetPath)) continue;
+function getLoadedExtension(extensionPath) {
+  return session.defaultSession.extensions
+    .getAllExtensions()
+    .find(
+      (extension) =>
+        normalizeExtensionPath(extension.path) ===
+        normalizeExtensionPath(extensionPath),
+    );
+}
+
+function getExtensionList() {
+  const rememberedIds = store.get("extension-ids", {});
+  return getExtensionPaths().map((extensionPath) => {
+    const pathKey = normalizeExtensionPath(extensionPath);
+    const loadedExtension = getLoadedExtension(extensionPath);
+    let manifest = loadedExtension?.manifest || {};
+    let error = extensionLoadErrors.get(pathKey) || "";
 
     try {
-      const stylesheet = fs.readFileSync(stylesheetPath, "utf8");
-      const rules = stylesheet.matchAll(/([^{}]+)\{([^{}]*)\}/g);
-      for (const [, selectorText, declarations] of rules) {
-        const selectors = selectorText.split(",").map((selector) => selector.trim().toLowerCase());
-        if (!selectors.some((selector) => selector === "body" || selector === "html")) {
-          continue;
-        }
-
-        for (const declaration of declarations.split(";")) {
-          const separator = declaration.indexOf(":");
-          if (separator < 1) continue;
-          const property = declaration.slice(0, separator).trim().toLowerCase();
-          let value = declaration.slice(separator + 1).trim();
-          if (
-            !allowedProperties.has(property) ||
-            !value ||
-            /[{};]/.test(value)
-          ) {
-            continue;
-          }
-
-          value = value.replace(/url\((['"]?)(.*?)\1\)/gi, (_match, _quote, resource) => {
-            if (
-              !resource ||
-              path.isAbsolute(resource) ||
-              /^[a-z][a-z\d+.-]*:/i.test(resource)
-            ) {
-              return "none";
-            }
-            const resourcePath = path.resolve(path.dirname(stylesheetPath), resource);
-            const relativePath = path.relative(folderPath, resourcePath);
-            if (
-              relativePath === ".." ||
-              relativePath.startsWith(`..${path.sep}`) ||
-              path.isAbsolute(relativePath) ||
-              !fs.existsSync(resourcePath) ||
-              !fs.statSync(resourcePath).isFile()
-            ) {
-              return "none";
-            }
-            return `url("${pathToFileURL(resourcePath).href}")`;
-          });
-          styles.push({ property, value });
-        }
+      const parsedManifest = JSON.parse(
+        fs.readFileSync(path.join(extensionPath, "manifest.json"), "utf8"),
+      );
+      if (!parsedManifest || typeof parsedManifest !== "object" || Array.isArray(parsedManifest)) {
+        throw new Error("manifest.json must contain an extension manifest object.");
       }
-    } catch (error) {
-      console.error(`Failed to load background styles for ${extension.id}:`, error);
+      manifest = parsedManifest;
+    } catch (loadError) {
+      error = loadError.message;
     }
-  }
-  return styles;
+
+    const manifestOptionsPage =
+      manifest.options_ui?.page || manifest.options_page || "";
+
+    return {
+      id: loadedExtension?.id || rememberedIds[pathKey] || "",
+      name:
+        loadedExtension?.name ||
+        (typeof manifest.name === "string" ? manifest.name : path.basename(extensionPath)),
+      author: typeof manifest.author === "string" ? manifest.author : "",
+      version: loadedExtension?.version || manifest.version || "",
+      description: typeof manifest.description === "string" ? manifest.description : "",
+      path: extensionPath,
+      enabled: Boolean(loadedExtension),
+      builtIn:
+        normalizeExtensionPath(extensionPath) ===
+        normalizeExtensionPath(getUBlockExtensionPath()),
+      hasOptionsPage: Boolean(manifestOptionsPage),
+      error,
+    };
+  });
 }
 
 function ensureHistoryFile() {
@@ -246,7 +156,8 @@ try {
 let mainWindow;
 let splashWindow;
 let uBlockExtensionId;
-let uBlockDashboardWindow;
+const extensionLoadErrors = new Map();
+const extensionOptionsWindows = new Map();
 let contextMenuI18n = {};
 
 // ─── Load context menu translations ────────────────────────────────────────────
@@ -308,43 +219,225 @@ async function updateAdBlocker(enabled) {
       getUBlockExtensionPath(),
     );
     uBlockExtensionId = extension.id;
+    rememberExtensionId(getUBlockExtensionPath(), extension.id);
   } else if (!enabled && uBlockExtensionId) {
+    closeExtensionOptions(uBlockExtensionId);
     session.defaultSession.extensions.removeExtension(uBlockExtensionId);
     uBlockExtensionId = undefined;
-    if (uBlockDashboardWindow && !uBlockDashboardWindow.isDestroyed()) {
-      uBlockDashboardWindow.close();
+  }
+}
+
+function closeExtensionOptions(extensionId) {
+  const optionsWindow = extensionOptionsWindows.get(extensionId);
+  if (optionsWindow && !optionsWindow.isDestroyed()) {
+    optionsWindow.close();
+  }
+}
+
+function rememberExtensionId(extensionPath, extensionId) {
+  const pathKey = normalizeExtensionPath(extensionPath);
+  store.set("extension-ids", {
+    ...store.get("extension-ids", {}),
+    [pathKey]: extensionId,
+  });
+}
+
+async function loadUserExtensions() {
+  const disabledPaths = store.get("disabled-extension-paths", {});
+  const bundledPath = normalizeExtensionPath(getUBlockExtensionPath());
+  for (const extensionPath of getUserExtensionPaths()) {
+    const pathKey = normalizeExtensionPath(extensionPath);
+    if (pathKey === bundledPath || disabledPaths[pathKey]) continue;
+
+    try {
+      const extension = await session.defaultSession.extensions.loadExtension(
+        extensionPath,
+      );
+      rememberExtensionId(extensionPath, extension.id);
+      extensionLoadErrors.delete(pathKey);
+    } catch (error) {
+      extensionLoadErrors.set(pathKey, error.message);
+      console.error(`Failed to load unpacked extension from ${extensionPath}:`, error);
     }
   }
 }
 
-async function openUBlockDashboard() {
-  if (!uBlockExtensionId) {
-    throw new Error("uBlock Origin no está activado.");
+async function setExtensionEnabled(extensionPath, enabled) {
+  const registeredPath = getExtensionPaths().find(
+    (candidate) =>
+      normalizeExtensionPath(candidate) ===
+      normalizeExtensionPath(extensionPath),
+  );
+  if (!registeredPath) {
+    throw new Error("No se encontró la extensión seleccionada.");
   }
 
-  if (uBlockDashboardWindow && !uBlockDashboardWindow.isDestroyed()) {
-    uBlockDashboardWindow.show();
-    uBlockDashboardWindow.focus();
+  const pathKey = normalizeExtensionPath(registeredPath);
+  const isBundledExtension =
+    pathKey === normalizeExtensionPath(getUBlockExtensionPath());
+
+  if (isBundledExtension) {
+    await updateAdBlocker(enabled);
+    store.set("settings", {
+      ...store.get("settings", {}),
+      adBlock: enabled,
+    });
+    mainWindow?.webContents.send("extension-settings-changed");
     return;
   }
 
-  uBlockDashboardWindow = new BrowserWindow({
+  const loadedExtension = getLoadedExtension(registeredPath);
+  if (enabled && !loadedExtension) {
+    try {
+      const extension = await session.defaultSession.extensions.loadExtension(
+        registeredPath,
+      );
+      rememberExtensionId(registeredPath, extension.id);
+      extensionLoadErrors.delete(pathKey);
+    } catch (error) {
+      extensionLoadErrors.set(pathKey, error.message);
+      throw error;
+    }
+  } else if (!enabled && loadedExtension) {
+    closeExtensionOptions(loadedExtension.id);
+    session.defaultSession.extensions.removeExtension(loadedExtension.id);
+  }
+
+  const disabledPaths = store.get("disabled-extension-paths", {});
+  if (enabled) {
+    delete disabledPaths[pathKey];
+  } else {
+    disabledPaths[pathKey] = true;
+  }
+  store.set("disabled-extension-paths", disabledPaths);
+}
+
+async function installUnpackedExtension() {
+  const selection = await dialog.showOpenDialog(mainWindow, {
+    title: "Load unpacked extension",
+    properties: ["openDirectory"],
+  });
+  if (selection.canceled || selection.filePaths.length === 0) return;
+
+  const extensionPath = path.resolve(selection.filePaths[0]);
+  const alreadyRegistered = getExtensionPaths().some(
+    (candidate) =>
+      normalizeExtensionPath(candidate) ===
+      normalizeExtensionPath(extensionPath),
+  );
+  if (alreadyRegistered && getLoadedExtension(extensionPath)) {
+    return;
+  }
+
+  if (
+    normalizeExtensionPath(extensionPath) ===
+    normalizeExtensionPath(getUBlockExtensionPath())
+  ) {
+    await updateAdBlocker(true);
+    store.set("settings", {
+      ...store.get("settings", {}),
+      adBlock: true,
+    });
+    return;
+  }
+
+  const userPaths = getUserExtensionPaths();
+  if (!alreadyRegistered) {
+    userPaths.push(extensionPath);
+    store.set("extension-paths", userPaths);
+  }
+
+  const disabledPaths = store.get("disabled-extension-paths", {});
+  delete disabledPaths[normalizeExtensionPath(extensionPath)];
+  store.set("disabled-extension-paths", disabledPaths);
+
+  try {
+    const extension = await session.defaultSession.extensions.loadExtension(
+      extensionPath,
+    );
+    rememberExtensionId(extensionPath, extension.id);
+    extensionLoadErrors.delete(normalizeExtensionPath(extensionPath));
+  } catch (error) {
+    extensionLoadErrors.set(normalizeExtensionPath(extensionPath), error.message);
+    throw error;
+  }
+}
+
+function removeUserExtension(extensionPath) {
+  const pathKey = normalizeExtensionPath(extensionPath);
+  const registeredPath = getUserExtensionPaths().find(
+    (candidate) => normalizeExtensionPath(candidate) === pathKey,
+  );
+  if (!registeredPath) {
+    throw new Error("No se encontró la extensión seleccionada.");
+  }
+
+  const loadedExtension = getLoadedExtension(registeredPath);
+  if (loadedExtension) {
+    closeExtensionOptions(loadedExtension.id);
+    session.defaultSession.extensions.removeExtension(loadedExtension.id);
+  }
+  store.set(
+    "extension-paths",
+    getUserExtensionPaths().filter(
+      (candidate) => normalizeExtensionPath(candidate) !== pathKey,
+    ),
+  );
+  const disabledPaths = store.get("disabled-extension-paths", {});
+  delete disabledPaths[pathKey];
+  store.set("disabled-extension-paths", disabledPaths);
+  const rememberedIds = store.get("extension-ids", {});
+  delete rememberedIds[pathKey];
+  store.set("extension-ids", rememberedIds);
+  extensionLoadErrors.delete(pathKey);
+}
+
+async function openExtensionOptions(extensionId) {
+  const extension = session.defaultSession.extensions.getExtension(extensionId);
+  if (!extension) {
+    throw new Error("La extensión no está activada.");
+  }
+
+  const optionsPage =
+    extension.manifest.options_ui?.page || extension.manifest.options_page;
+  if (typeof optionsPage !== "string" || !optionsPage) {
+    throw new Error("Esta extensión no tiene una página de configuración.");
+  }
+
+  const optionsUrl = new URL(
+    optionsPage,
+    `chrome-extension://${extension.id}/`,
+  );
+  if (
+    optionsUrl.protocol !== "chrome-extension:" ||
+    optionsUrl.hostname !== extension.id
+  ) {
+    throw new Error("La página de configuración de la extensión no es válida.");
+  }
+
+  const existingWindow = extensionOptionsWindows.get(extension.id);
+  if (existingWindow && !existingWindow.isDestroyed()) {
+    existingWindow.show();
+    existingWindow.focus();
+    return;
+  }
+
+  const optionsWindow = new BrowserWindow({
     width: 1000,
     height: 760,
-    title: "uBlock Origin",
+    title: extension.name,
     webPreferences: {
       session: session.defaultSession,
     },
   });
-  uBlockDashboardWindow.on("closed", () => {
-    uBlockDashboardWindow = undefined;
+  extensionOptionsWindows.set(extension.id, optionsWindow);
+  optionsWindow.on("closed", () => {
+    extensionOptionsWindows.delete(extension.id);
   });
   try {
-    await uBlockDashboardWindow.loadURL(
-      `chrome-extension://${uBlockExtensionId}/dashboard.html`,
-    );
+    await optionsWindow.loadURL(optionsUrl.href);
   } catch (error) {
-    uBlockDashboardWindow.close();
+    optionsWindow.close();
     throw error;
   }
 }
@@ -542,22 +635,26 @@ ipcMain.on("window-close", () => mainWindow?.close());
 ipcMain.handle("window-is-maximized", () => mainWindow?.isMaximized() ?? false);
 
 // ─── IPC: Extensions ─────────────────────────────────────────────────────────
-ipcMain.handle("get-extensions", () => getInstalledExtensions());
-ipcMain.handle("open-ublock-dashboard", () => openUBlockDashboard());
-ipcMain.handle("set-extension-enabled", (_event, id, enabled) => {
-  if (typeof id !== "string" || typeof enabled !== "boolean") {
+ipcMain.handle("get-extensions", () => getExtensionList());
+ipcMain.handle("install-unpacked-extension", () => installUnpackedExtension());
+ipcMain.handle("set-extension-enabled", (_event, extensionPath, enabled) => {
+  if (typeof extensionPath !== "string" || typeof enabled !== "boolean") {
     throw new Error("La extensión y su estado no son válidos.");
   }
-  if (!getInstalledExtensions().some((extension) => extension.id === id)) {
-    throw new Error(`No se encontró la extensión ${id}.`);
-  }
-
-  const enabledExtensions = store.get("enabled-extensions", {});
-  store.set("enabled-extensions", { ...enabledExtensions, [id]: enabled });
+  return setExtensionEnabled(extensionPath, enabled);
 });
-ipcMain.handle("get-background-extension-styles", () =>
-  getBackgroundExtensionStyles(),
-);
+ipcMain.handle("remove-extension", (_event, extensionPath) => {
+  if (typeof extensionPath !== "string") {
+    throw new Error("La extensión seleccionada no es válida.");
+  }
+  return removeUserExtension(extensionPath);
+});
+ipcMain.handle("open-extension-options", (_event, extensionId) => {
+  if (typeof extensionId !== "string" || !extensionId) {
+    throw new Error("El identificador de la extensión no es válido.");
+  }
+  return openExtensionOptions(extensionId);
+});
 
 // ─── IPC: Settings ────────────────────────────────────────────────────────────
 ipcMain.handle("get-settings", () => ({
@@ -652,6 +749,7 @@ app.whenReady().then(async () => {
       `No se pudo cargar uBlock Origin. El navegador continuará sin bloqueo de anuncios.\n\n${error.message}`,
     );
   }
+  await loadUserExtensions();
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const headers = { ...details.responseHeaders };

@@ -30,7 +30,7 @@
             line-height: 1.6;
         }
 
-        .ublock-dashboard-button {
+        .extensions-install-button {
             padding: 9px 14px;
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
@@ -39,7 +39,7 @@
             cursor: pointer;
         }
 
-        .ublock-dashboard-button:hover {
+        .extensions-install-button:hover {
             border-color: var(--accent);
         }
 
@@ -131,7 +131,8 @@
         .extension-card-footer {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-end;
+            flex-wrap: wrap;
             gap: 12px;
             margin-top: 18px;
             padding-top: 14px;
@@ -156,9 +157,23 @@
             border-color: var(--accent);
         }
 
-        .extension-toggle:disabled {
+        .extension-toggle:disabled,
+        .extension-action:disabled {
             cursor: wait;
             opacity: 0.6;
+        }
+
+        .extension-action {
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 7px 12px;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .extension-action:hover {
+            border-color: var(--accent);
         }
 
         .extension-card-error {
@@ -213,11 +228,11 @@
     <main class="extensions-page">
         <h1 data-i18n="extensions_title">Extension Manager</h1>
         <p class="extensions-description" data-i18n="extensions_description"></p>
-        <button class="ublock-dashboard-button" id="open-ublock-dashboard" type="button"
-            data-i18n="ublock_dashboard">uBlock Origin settings</button>
+        <button class="extensions-install-button" id="install-extension" type="button"
+            data-i18n="extension_install">Load unpacked extension</button>
         <p class="extensions-folder-hint">
             <span data-i18n="extensions_folder_hint"></span>
-            <code>StormGamesStudios/Programs/StormBrowser/extensions/&lt;extension-folder&gt;/</code>
+            <code>manifest.json</code>
         </p>
         <section id="extensions-list" aria-live="polite"></section>
     </main>
@@ -281,10 +296,10 @@
             const heading = document.createElement("div");
             const name = document.createElement("h2");
             name.textContent = extension.name;
-            const type = document.createElement("span");
-            type.className = "extension-type";
-            type.textContent = extension.type || translations.unknown_type;
-            heading.append(name, type);
+            const version = document.createElement("span");
+            version.className = "extension-type";
+            version.textContent = extension.version || translations.unknown_version;
+            heading.append(name, version);
             header.append(icon, heading);
 
             const description = document.createElement("p");
@@ -296,7 +311,7 @@
             addDetail(details, "extension_id", extension.id);
             addDetail(details, "extension_author", extension.author || translations.unknown_author);
             addDetail(details, "extension_version", extension.version);
-            addDetail(details, "extension_folder", extension.folder);
+            addDetail(details, "extension_path", extension.path);
 
             card.append(header, description, details);
             if (extension.error) {
@@ -304,6 +319,41 @@
                 error.className = "extension-card-error";
                 error.textContent = `${translations.extension_load_error}: ${extension.error}`;
                 card.append(error);
+                const footer = document.createElement("footer");
+                footer.className = "extension-card-footer";
+                const retry = document.createElement("button");
+                retry.className = "extension-toggle";
+                retry.type = "button";
+                retry.textContent = translations.extension_enable;
+                retry.addEventListener("click", async () => {
+                    retry.disabled = true;
+                    try {
+                        await ipcRenderer.invoke("set-extension-enabled", extension.path, true);
+                        await renderExtensions();
+                    } catch (retryError) {
+                        console.error("Failed to load extension:", retryError);
+                        error.textContent = `${translations.extension_load_error}: ${retryError.message}`;
+                        retry.disabled = false;
+                    }
+                });
+                footer.append(retry);
+                if (!extension.builtIn) {
+                    const remove = document.createElement("button");
+                    remove.className = "extension-action";
+                    remove.type = "button";
+                    remove.textContent = translations.extension_remove;
+                    remove.addEventListener("click", async () => {
+                        try {
+                            await ipcRenderer.invoke("remove-extension", extension.path);
+                            await renderExtensions();
+                        } catch (removeError) {
+                            console.error("Failed to remove extension:", removeError);
+                            window.alert(removeError.message);
+                        }
+                    });
+                    footer.append(remove);
+                }
+                card.append(footer);
             } else {
                 const footer = document.createElement("footer");
                 footer.className = "extension-card-footer";
@@ -318,16 +368,47 @@
                 toggle.addEventListener("click", async () => {
                     toggle.disabled = true;
                     try {
-                        await ipcRenderer.invoke("set-extension-enabled", extension.id, !extension.enabled);
+                        await ipcRenderer.invoke("set-extension-enabled", extension.path, !extension.enabled);
                         await renderExtensions();
-                        window.parent.postMessage({ type: "extensions-changed" }, "*");
                     } catch (error) {
                         console.error("Failed to update extension state:", error);
                         state.textContent = error.message;
                         toggle.disabled = false;
                     }
                 });
-                footer.append(state, toggle);
+                footer.append(state);
+                if (extension.hasOptionsPage && extension.enabled) {
+                    const options = document.createElement("button");
+                    options.className = "extension-action";
+                    options.type = "button";
+                    options.textContent = translations.extension_options;
+                    options.addEventListener("click", async () => {
+                        try {
+                            await ipcRenderer.invoke("open-extension-options", extension.id);
+                        } catch (error) {
+                            console.error("Failed to open extension options:", error);
+                            window.alert(error.message);
+                        }
+                    });
+                    footer.append(options);
+                }
+                footer.append(toggle);
+                if (!extension.builtIn) {
+                    const remove = document.createElement("button");
+                    remove.className = "extension-action";
+                    remove.type = "button";
+                    remove.textContent = translations.extension_remove;
+                    remove.addEventListener("click", async () => {
+                        try {
+                            await ipcRenderer.invoke("remove-extension", extension.path);
+                            await renderExtensions();
+                        } catch (error) {
+                            console.error("Failed to remove extension:", error);
+                            window.alert(error.message);
+                        }
+                    });
+                    footer.append(remove);
+                }
                 card.append(footer);
             }
             return card;
@@ -363,12 +444,18 @@
         document.getElementById("back-button").addEventListener("click", () => {
             window.parent.postMessage({ type: "navigate", url: "storm://settings" }, "*");
         });
-        document.getElementById("open-ublock-dashboard").addEventListener("click", async () => {
+        document.getElementById("install-extension").addEventListener("click", async (event) => {
+            const button = event.currentTarget;
+            button.disabled = true;
             try {
-                await ipcRenderer.invoke("open-ublock-dashboard");
+                await ipcRenderer.invoke("install-unpacked-extension");
+                await renderExtensions();
             } catch (error) {
-                console.error("Failed to open uBlock Origin dashboard:", error);
+                console.error("Failed to load unpacked extension:", error);
                 window.alert(error.message);
+                await renderExtensions();
+            } finally {
+                button.disabled = false;
             }
         });
     </script>
