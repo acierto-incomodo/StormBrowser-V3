@@ -1,0 +1,69 @@
+{
+   "author": "Vendicated",
+   "background": {
+      "service_worker": "service-worker.js"
+   },
+   "commands": {
+      "NAVIGATE_BACK": {
+         "description": "Navigate Back — Might conflict with your browsers native keybinds"
+      },
+      "NAVIGATE_FORWARD": {
+         "description": "Navigate Forward — Might conflict with your browsers native keybinds"
+      },
+      "SAVE_CLIP": {
+         "description": "Save Clip — Clips the last 30 seconds to 2 minutes of your stream, depending on your settings."
+      },
+      "TOGGLE_DEAFEN": {
+         "description": "Toggle Deafen — Toggle your speaker's playback on and off. Also disables your microphone while deafened."
+      },
+      "TOGGLE_GO_LIVE_STREAMING": {
+         "description": "Toggle Screen Share — Toggle to start/stop streaming in your current voice channel. Streams can only be started with this keybind if Discord recognises the game you are currently playing."
+      },
+      "TOGGLE_MUTE": {
+         "description": "Toggle Mute — Toggle your microphone's transmission on and off."
+      },
+      "TOGGLE_STREAMER_MODE": {
+         "description": "Toggle Streamer Mode — Toggle to enable/disable Streamer Mode."
+      },
+      "TOGGLE_VOICE_MODE": {
+         "description": "Toggle VAD — Toggle to switch between Push-to-talk and Voice Activity mode."
+      }
+   },
+   "content_scripts": [ {
+      "all_frames": true,
+      "js": [ "content.js" ],
+      "matches": [ "*://*.discord.com/*" ],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+   }, {
+      "all_frames": true,
+      "js": [ "dist/Vencord.js" ],
+      "matches": [ "*://*.discord.com/*" ],
+      "run_at": "document_start",
+      "world": "MAIN"
+   } ],
+   "declarative_net_request": {
+      "rule_resources": [ {
+         "enabled": true,
+         "id": "modifyResponseHeaders",
+         "path": "modifyResponseHeaders.json"
+      } ]
+   },
+   "description": "The cutest Discord mod now in your browser",
+   "homepage_url": "https://github.com/Vendicated/Vencord",
+   "host_permissions": [ "*://*.discord.com/*", "https://raw.githubusercontent.com/*" ],
+   "icons": {
+      "128": "icon.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkrUVoGNNmshDJE+tXjIjtn6c1zlgUYfGrPBLt8u16shY3Mticm7xWf73+3DCtBQRvwqYXbhkoYSBsDB4W6bUz3ELmf5pwAqhQLag1ynB+1vo/tAGHat5xPcgJJLfLk9lOd91jAwhmVxyX090Dtw/h7Tis0h6QmvwMghCEIfF8QjeUc8NRunLh/z1p97ctdKOlNeqmj5hPhzNlaH7dCTA/wtJzn6ubqSPTrZ34ZS6Ww/GwIBTraFPd31BANeOGuueZ+oFRmG/3h6zVAcC0Sd+tDt9UGIb2X0Jy9OF5VRMCThbZY9WnpCw6z0GhMSy9iIut6KDIOYmnTDNtKEsRJS2twIDAQAB",
+   "manifest_version": 3,
+   "minimum_chrome_version": "111",
+   "name": "Vencord Web",
+   "permissions": [ "declarativeNetRequestWithHostAccess" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "1.15.11",
+   "web_accessible_resources": [ {
+      "matches": [ "*://*.discord.com/*" ],
+      "resources": [ "dist/*", "vendor/*" ]
+   } ]
+}

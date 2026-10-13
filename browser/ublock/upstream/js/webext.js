@@ -59,6 +59,50 @@ const promisify = function(thisArg, fnName) {
     };
 };
 
+const noopCallbackApi = methodNames => Object.fromEntries(
+    methodNames.map(name => [
+        name,
+        (...args) => {
+            const callback = args.at(-1);
+            if ( callback instanceof Function ) {
+                callback();
+            }
+        },
+    ])
+);
+
+const withNoopMethods = (api, methodNames) => {
+    const safeApi = Object.create(api || null);
+    for ( const name of methodNames ) {
+        if ( typeof api?.[name] !== 'function' ) {
+            safeApi[name] = noopCallbackApi([ name ])[name];
+        }
+    }
+    return safeApi;
+};
+
+const noopEvent = {
+    addListener() {},
+    removeListener() {},
+    hasListener() { return false; },
+};
+
+const browserAction = withNoopMethods(chrome.browserAction, [
+    'setBadgeBackgroundColor',
+    'setBadgeText',
+    'setIcon',
+    'setTitle',
+]);
+const contextMenus = withNoopMethods(chrome.contextMenus, [
+    'create',
+    'remove',
+    'removeAll',
+]);
+const webNavigation = withNoopMethods(chrome.webNavigation, [
+    'getFrame',
+    'getAllFrames',
+]);
+
 const webext = {
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/alarms
     alarms: {
@@ -71,25 +115,24 @@ const webext = {
     },
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/browserAction
     browserAction: {
-        setBadgeBackgroundColor: promisifyNoFail(chrome.browserAction, 'setBadgeBackgroundColor'),
-        setBadgeText: promisifyNoFail(chrome.browserAction, 'setBadgeText'),
-        setIcon: promisifyNoFail(chrome.browserAction, 'setIcon'),
-        setTitle: promisifyNoFail(chrome.browserAction, 'setTitle'),
+        setBadgeBackgroundColor: promisifyNoFail(browserAction, 'setBadgeBackgroundColor'),
+        setBadgeText: promisifyNoFail(browserAction, 'setBadgeText'),
+        setIcon: promisifyNoFail(browserAction, 'setIcon'),
+        setTitle: promisifyNoFail(browserAction, 'setTitle'),
     },
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/menus
     menus: {
         create: function() {
-            return chrome.contextMenus.create(...arguments, ( ) => {
+            return contextMenus.create(...arguments, ( ) => {
                 void chrome.runtime.lastError;
             });
         },
-        onClicked: chrome.contextMenus.onClicked,
-        remove: promisifyNoFail(chrome.contextMenus, 'remove'),
-        removeAll: promisifyNoFail(chrome.contextMenus, 'removeAll'),
+        onClicked: chrome.contextMenus?.onClicked || noopEvent,
+        remove: promisifyNoFail(contextMenus, 'remove'),
+        removeAll: promisifyNoFail(contextMenus, 'removeAll'),
     },
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/privacy
-    privacy: {
-    },
+    privacy: {},
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage
     storage: {
         // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/local
@@ -115,8 +158,8 @@ const webext = {
     },
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webNavigation
     webNavigation: {
-        getFrame: promisify(chrome.webNavigation, 'getFrame'),
-        getAllFrames: promisify(chrome.webNavigation, 'getAllFrames'),
+        getFrame: promisifyNoFail(webNavigation, 'getFrame', frame => frame instanceof Object ? frame : null),
+        getAllFrames: promisifyNoFail(webNavigation, 'getAllFrames', frames => Array.isArray(frames) ? frames : []),
     },
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/windows
     windows: {
@@ -141,7 +184,10 @@ const webext = {
             categoryEntry = webext.privacy[category] = {};
         }
         const settingEntry = categoryEntry[setting] = {};
-        const thisArg = chrome.privacy[category][setting];
+        const thisArg = withNoopMethods(
+            chrome.privacy?.[category]?.[setting],
+            [ 'clear', 'get', 'set' ]
+        );
         settingEntry.clear = promisifyNoFail(thisArg, 'clear');
         settingEntry.get = promisifyNoFail(thisArg, 'get');
         settingEntry.set = promisifyNoFail(thisArg, 'set');

@@ -1,7 +1,9 @@
 # Managed full uBlock Origin
 
 Upstream: Raymond Hill's uBlock Origin 1.75.0 Chromium release, GPL-3.0-or-later.
-`upstream/` is the exact unpacked official release, including upstream notices.
+`upstream/` is the official unpacked release with one Electron compatibility
+change in `js/webext.js`, including upstream notices. `pinned.json` retains the
+hashes of the original release files.
 `pinned.json` binds every file and the official release ZIP digest. No Lite code
 is used. `sources/uBlock-1.75.0.tar.gz` contains the matching upstream source tag.
 The GPL text is `LICENSE.txt`. Upstream libraries and filter data retain their
@@ -21,7 +23,10 @@ copied into the adapted extension. The image keeps its existing size and styling
 controls and editors; Filter lists uses the approved two-column presentation. Native list states and filtering logic
 are unchanged.
 Changes concern browser API hosting, startup, popup/Dashboard presentation and popup lifetime, unavailable privacy
-controls, and the restriction to bundled executable resources.
+controls, and the restriction to bundled executable resources. The Electron
+compatibility change supplies no-op fallbacks for optional extension APIs that
+Electron does not expose; it keeps those unsupported features from preventing
+uBlock's background page and Dashboard from starting.
 
 To reproduce with Node 22 from this source checkout:
 
