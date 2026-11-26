@@ -89,7 +89,7 @@
     "@eslint/js": "^10.0.1",
     "@eslint/json": "^2.1.1",
     "@ghostery/adblocker": "^2.20.3",
-    "electron": "45.4.1",
+    "electron": "45.5.0",
     "electron-builder": "^26.18.0",
     "eslint": "^10.15.0",
     "eslint-formatter-compact": "^9.0.1"
