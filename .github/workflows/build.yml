@@ -1,4 +1,4 @@
-name: MultiAI - Build
+name: StormBrowser - Build
 
 on:
   push:
@@ -11,11 +11,6 @@ permissions:
   contents: read
 
 jobs:
-
-  # ============================
-  # WINDOWS
-  # ============================
-
   build-windows:
     name: Build Windows
     runs-on: windows-latest
@@ -34,19 +29,26 @@ jobs:
         run: npm ci
 
       - name: Build Windows
-        run: npx electron-builder --win --publish never
+        run: npm run build:win --workspace=browser -- --publish never
 
-      - name: Upload Windows artifacts
+      - name: Build Windows setup
+        run: npm run build --workspace=setup -- --publish never
+
+      - name: Upload Windows browser artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: MultiAI-Windows
-          path: dist/*
+          name: StormBrowser-Windows
+          path: browser/dist/*
           if-no-files-found: error
           retention-days: 14
 
-  # ============================
-  # LINUX
-  # ============================
+      - name: Upload Windows setup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StormBrowser-Setup-Windows
+          path: setup/dist/*
+          if-no-files-found: error
+          retention-days: 14
 
   build-linux:
     name: Build Linux
@@ -63,25 +65,18 @@ jobs:
           cache: npm
 
       - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder fuse3
-
-      - name: Configure Flatpak
-        run: |
-          flatpak remote-add --user --if-not-exists flathub \
-            https://flathub.org/repo/flathub.flatpakrepo
+        run: sudo apt-get update && sudo apt-get install -y fakeroot dpkg
 
       - name: Install dependencies
         run: npm ci
 
       - name: Build Linux
-        run: npx electron-builder --linux --publish never
+        run: npm run build:linux --workspace=browser -- --publish never
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: MultiAI-Linux
-          path: dist/*
+          name: StormBrowser-Linux
+          path: browser/dist/*
           if-no-files-found: error
           retention-days: 14

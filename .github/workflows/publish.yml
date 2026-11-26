@@ -1,4 +1,4 @@
-name: MultiAI - Publish Release
+name: StormBrowser - Publish Release
 
 on:
   push:
@@ -11,11 +11,6 @@ permissions:
   contents: write
 
 jobs:
-
-  # ==========================================
-  # WINDOWS
-  # ==========================================
-
   release-windows:
     name: Release Windows
     runs-on: windows-latest
@@ -34,19 +29,24 @@ jobs:
         run: npm ci
 
       - name: Build Windows
-        run: npx electron-builder --win --publish never
+        run: npm run build:win --workspace=browser -- --publish never
 
-      - name: Upload Windows files
+      - name: Build Windows setup
+        run: npm run build --workspace=setup -- --publish never
+
+      - name: Upload Windows browser files
         uses: actions/upload-artifact@v4
         with:
-          name: MultiAI-Windows
-          path: dist/*
+          name: StormBrowser-Windows
+          path: browser/dist/*
           if-no-files-found: error
 
-
-  # ==========================================
-  # LINUX
-  # ==========================================
+      - name: Upload Windows setup file
+        uses: actions/upload-artifact@v4
+        with:
+          name: StormBrowser-Setup-Windows
+          path: setup/dist/*
+          if-no-files-found: error
 
   release-linux:
     name: Release Linux
@@ -62,28 +62,21 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y fakeroot dpkg
-
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Linux dependencies
+        run: sudo apt-get update && sudo apt-get install -y fakeroot dpkg
+
       - name: Build Linux
-        run: npx electron-builder --linux --publish never
+        run: npm run build:linux --workspace=browser -- --publish never
 
       - name: Upload Linux files
         uses: actions/upload-artifact@v4
         with:
-          name: MultiAI-Linux
-          path: dist/*
+          name: StormBrowser-Linux
+          path: browser/dist/*
           if-no-files-found: error
-
-
-  # ==========================================
-  # PUBLISH RELEASE
-  # ==========================================
 
   publish-release:
     name: Publish GitHub Release
@@ -96,45 +89,54 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          ref: ${{ github.ref }}
+          node-version: 22
 
       - name: Download Windows builds
         uses: actions/download-artifact@v4
         with:
-          name: MultiAI-Windows
-          path: release/windows
+          name: StormBrowser-Windows
+          path: release/windows/browser
+
+      - name: Download Windows setup
+        uses: actions/download-artifact@v4
+        with:
+          name: StormBrowser-Setup-Windows
+          path: release/windows/setup
 
       - name: Download Linux builds
         uses: actions/download-artifact@v4
         with:
-          name: MultiAI-Linux
-          path: release/linux
-
-      - name: Prepare release files
-        run: |
-          mkdir -p release/fotos
-          cp fotos/foto*.png release/fotos/
-
-          cp README.md release/README.md
+          name: StormBrowser-Linux
+          path: release/linux/browser
 
       - name: Read package version
         id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            TAG="v$VERSION"
+          else
+            TAG="$GITHUB_REF_NAME"
+          fi
+          if [[ "$TAG" != "v$VERSION" ]]; then
+            echo "Release tag $TAG does not match package version v$VERSION" >&2
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: ${{ steps.version.outputs.tag }}
-          body_path: README.md
           files: |
-            release/windows/*
-            release/linux/*
-            release/fotos/*
+            release/windows/browser/*
+            release/windows/setup/StormBrowser-Setup.exe
+            release/linux/browser/*
           draft: false
           prerelease: false
         env:

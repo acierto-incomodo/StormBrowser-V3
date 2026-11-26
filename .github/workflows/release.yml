@@ -1,4 +1,4 @@
-name: MultiAI - Automatic Version Tag
+name: StormBrowser - Automatic Version Tag
 
 on:
   push:
